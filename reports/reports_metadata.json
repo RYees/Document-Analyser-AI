@@ -1,0 +1,173 @@
+{
+  "29b6c521-2d0f-403b-97a7-38605966faa7": {
+    "report_id": "29b6c521-2d0f-403b-97a7-38605966faa7",
+    "pipeline_id": "test-pipeline-id",
+    "research_domain": "Blockchain",
+    "file_path": "/Users/rzapp/Documents/waga/waga-academy-ai-assistant/ragbackend/api/agents/../../reports/thematic_literature_review_Blockchain_20250719_144446.md",
+    "word_count": 976,
+    "total_references": 11,
+    "sections_included": {
+      "Abstract": true,
+      "Introduction": true,
+      "Literature Review": true,
+      "Methodology": true,
+      "Findings": true,
+      "Discussion": true,
+      "Conclusion": true
+    },
+    "generated_at": "2025-07-19T11:44:46.406554+00:00",
+    "status": "completed"
+  },
+  "ed9a62f2-b7ad-4769-b8e6-cbadb879f9c7": {
+    "report_id": "ed9a62f2-b7ad-4769-b8e6-cbadb879f9c7",
+    "pipeline_id": null,
+    "research_domain": "General",
+    "file_path": "/Users/rzapp/Documents/waga/waga-academy-ai-assistant/ragbackend/api/agents/../../reports/thematic_literature_review_General_20250719_154724.md",
+    "word_count": 831,
+    "total_references": 5,
+    "sections_included": {
+      "Abstract": true,
+      "Introduction": true,
+      "Literature Review": true,
+      "Methodology": true,
+      "Findings": true,
+      "Discussion": true,
+      "Conclusion": true
+    },
+    "generated_at": "2025-07-19T12:47:24.210448+00:00",
+    "status": "completed"
+  },
+  "f26d221a-f39b-4629-b9e6-c39c0d5444e3": {
+    "report_id": "f26d221a-f39b-4629-b9e6-c39c0d5444e3",
+    "pipeline_id": null,
+    "research_domain": "General",
+    "file_path": "/Users/rzapp/Documents/waga/waga-academy-ai-assistant/ragbackend/api/agents/../../reports/thematic_literature_review_General_20250719_155334.md",
+    "word_count": 927,
+    "total_references": 7,
+    "sections_included": {
+      "Abstract": true,
+      "Introduction": true,
+      "Literature Review": true,
+      "Methodology": true,
+      "Findings": true,
+      "Discussion": true,
+      "Conclusion": true
+    },
+    "generated_at": "2025-07-19T12:53:34.231437+00:00",
+    "status": "completed"
+  },
+  "89057c95-8cd0-4562-868f-8c866bc32246": {
+    "report_id": "89057c95-8cd0-4562-868f-8c866bc32246",
+    "pipeline_id": null,
+    "research_domain": "General",
+    "file_path": "/Users/rzapp/Documents/waga/waga-academy-ai-assistant/ragbackend/api/agents/../../reports/thematic_literature_review_General_20250719_160427.md",
+    "word_count": 915,
+    "total_references": 5,
+    "sections_included": {
+      "Abstract": true,
+      "Introduction": true,
+      "Literature Review": true,
+      "Methodology": true,
+      "Findings": true,
+      "Discussion": true,
+      "Conclusion": true
+    },
+    "generated_at": "2025-07-19T13:04:27.642296+00:00",
+    "status": "completed"
+  },
+  "f79e6108-26ab-42f1-b7be-1c28b48244bf": {
+    "report_id": "f79e6108-26ab-42f1-b7be-1c28b48244bf",
+    "pipeline_id": null,
+    "research_domain": "General",
+    "file_path": "/Users/rzapp/Documents/waga/waga-academy-ai-assistant/ragbackend/api/agents/../../reports/thematic_literature_review_General_20250719_161043.md",
+    "word_count": 858,
+    "total_references": 10,
+    "sections_included": {
+      "Abstract": true,
+      "Introduction": true,
+      "Literature Review": true,
+      "Methodology": true,
+      "Findings": true,
+      "Discussion": true,
+      "Conclusion": true
+    },
+    "generated_at": "2025-07-19T13:10:43.137438+00:00",
+    "status": "completed"
+  },
+  "8b8c5c5e-14f1-4d5f-aa56-e01b6aed6eb9": {
+    "report_id": "8b8c5c5e-14f1-4d5f-aa56-e01b6aed6eb9",
+    "pipeline_id": "7a365cca-c6b5-4231-99f7-85c98f691098",
+    "research_domain": "Blockchain",
+    "file_path": "/Users/rzapp/Documents/waga/waga-academy-ai-assistant/ragbackend/api/agents/../../reports/thematic_literature_review_Blockchain_20250719_165933.md",
+    "word_count": 904,
+    "total_references": 2,
+    "sections_included": {
+      "Abstract": true,
+      "Introduction": true,
+      "Literature Review": true,
+      "Methodology": true,
+      "Findings": true,
+      "Discussion": true,
+      "Conclusion": true
+    },
+    "generated_at": "2025-07-19T13:59:33.700444+00:00",
+    "status": "completed"
+  },
+  "2645d88d-c72b-4867-96a6-b12f222c0d42": {
+    "report_id": "2645d88d-c72b-4867-96a6-b12f222c0d42",
+    "pipeline_id": "Blockchain",
+    "research_domain": "General",
+    "file_path": "/Users/rzapp/Documents/waga/waga-academy-ai-assistant/ragbackend/api/agents/../../reports/thematic_literature_review_General_20250719_173638.md",
+    "word_count": 938,
+    "total_references": 0,
+    "sections_included": {
+      "Abstract": true,
+      "Introduction": true,
+      "Literature Review": true,
+      "Methodology": true,
+      "Findings": true,
+      "Discussion": true,
+      "Conclusion": true
+    },
+    "generated_at": "2025-07-19T14:36:38.746044+00:00",
+    "status": "completed"
+  },
+  "018bf64d-03a2-4bb6-880a-ad25c3006de6": {
+    "report_id": "018bf64d-03a2-4bb6-880a-ad25c3006de6",
+    "pipeline_id": "Blockchain",
+    "research_domain": "General",
+    "file_path": "/Users/rzapp/Documents/waga/waga-academy-ai-assistant/ragbackend/api/agents/../../reports/thematic_literature_review_General_20250719_175437.md",
+    "word_count": 851,
+    "total_references": 2,
+    "sections_included": {
+      "Abstract": true,
+      "Introduction": true,
+      "Literature Review": true,
+      "Methodology": true,
+      "Findings": true,
+      "Discussion": true,
+      "Conclusion": true
+    },
+    "generated_at": "2025-07-19T14:54:37.340453+00:00",
+    "status": "completed"
+  },
+  "44248f91-8302-4a10-b9d7-59ad01f6261f": {
+    "report_id": "44248f91-8302-4a10-b9d7-59ad01f6261f",
+    "pipeline_id": "Medical Health Care",
+    "research_domain": "General",
+    "file_path": "/Users/rzapp/Documents/waga/waga-academy-ai-assistant/ragbackend/api/agents/../../reports/thematic_literature_review_General_20250725_160745.md",
+    "word_count": 761,
+    "total_references": 2,
+    "sections_included": {
+      "Abstract": true,
+      "Introduction": true,
+      "Literature Review": true,
+      "Methodology": true,
+      "Findings": true,
+      "Discussion": true,
+      "Conclusion": true
+    },
+    "generated_at": "2025-07-25T13:07:45.324114+00:00",
+    "status": "completed"
+  }
+}

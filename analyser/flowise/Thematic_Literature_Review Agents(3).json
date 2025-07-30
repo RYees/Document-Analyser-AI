@@ -1,0 +1,1627 @@
+{
+  "nodes": [
+    {
+      "id": "supervisor_0",
+      "position": {
+        "x": 715.5095179184581,
+        "y": 334.84826865786374
+      },
+      "type": "customNode",
+      "data": {
+        "id": "supervisor_0",
+        "label": "Supervisor",
+        "version": 3,
+        "name": "supervisor",
+        "type": "Supervisor",
+        "baseClasses": [
+          "Supervisor"
+        ],
+        "category": "Multi Agents",
+        "inputParams": [
+          {
+            "label": "Supervisor Name",
+            "name": "supervisorName",
+            "type": "string",
+            "placeholder": "Supervisor",
+            "default": "Supervisor",
+            "id": "supervisor_0-input-supervisorName-string",
+            "display": true
+          },
+          {
+            "label": "Supervisor Prompt",
+            "name": "supervisorPrompt",
+            "type": "string",
+            "description": "Prompt must contains {team_members}",
+            "rows": 4,
+            "default": "You are a supervisor tasked with managing a conversation between the following workers: {team_members}.\nGiven the following user request, respond with the worker to act next.\nEach worker will perform a task and respond with their results and status.\nWhen finished, respond with FINISH.\nSelect strategically to minimize the number of steps taken.",
+            "additionalParams": true,
+            "id": "supervisor_0-input-supervisorPrompt-string",
+            "display": true
+          },
+          {
+            "label": "Summarization",
+            "name": "summarization",
+            "type": "boolean",
+            "description": "Return final output as a summarization of the conversation",
+            "optional": true,
+            "additionalParams": true,
+            "id": "supervisor_0-input-summarization-boolean",
+            "display": true
+          },
+          {
+            "label": "Recursion Limit",
+            "name": "recursionLimit",
+            "type": "number",
+            "description": "Maximum number of times a call can recurse. If not provided, defaults to 100.",
+            "default": 100,
+            "additionalParams": true,
+            "id": "supervisor_0-input-recursionLimit-number",
+            "display": true
+          }
+        ],
+        "inputAnchors": [
+          {
+            "label": "Tool Calling Chat Model",
+            "name": "model",
+            "type": "BaseChatModel",
+            "description": "Only compatible with models that are capable of function calling: ChatOpenAI, ChatMistral, ChatAnthropic, ChatGoogleGenerativeAI, GroqChat. Best result with GPT-4 model",
+            "id": "supervisor_0-input-model-BaseChatModel",
+            "display": true
+          },
+          {
+            "label": "Agent Memory",
+            "name": "agentMemory",
+            "type": "BaseCheckpointSaver",
+            "description": "Save the state of the agent",
+            "optional": true,
+            "id": "supervisor_0-input-agentMemory-BaseCheckpointSaver",
+            "display": true
+          },
+          {
+            "label": "Input Moderation",
+            "description": "Detect text that could generate harmful output and prevent it from being sent to the language model",
+            "name": "inputModeration",
+            "type": "Moderation",
+            "optional": true,
+            "list": true,
+            "id": "supervisor_0-input-inputModeration-Moderation",
+            "display": true
+          }
+        ],
+        "inputs": {
+          "supervisorName": "Supervisor",
+          "supervisorPrompt": "\n**Agent Execution Order:**  \n1. Data Retrieval Agent →  \n2. Literature Reviewer Agent →  \n3. Initial Coding Agent →  \n4. Thematic Grouping Agent →  \n5. Theme Definition & Refinement Agent →  \n6. Report Generation Agent\n7. Storage using the Write File \n\nYou are a supervisor tasked with managing a conversation between the following workers: {team_members}.  \nGiven the following user request, respond with the worker to act next. Each worker will perform a task and respond with their results and status. When finished, respond with FINISH.  \nSelect strategically to minimize the number of steps taken.\n\nThis multi-agent system is designed to perform a **Thematic Literature Review** based on scholarly sources related to Blockchain, Web3, and AI. The review must synthesize existing academic literature, uncover and analyze key patterns, and compile all findings into a well-structured academic paper. Harvard-style in-text citations and a reference list are mandatory.\n\nUse an academic but conversational tone throughout the report. Phrases such as “It can be argued that”, “In effect”, “Going forward”, and “Ideally” should appear where appropriate to enhance readability and scholarly tone.\n\n---\n\n**Your responsibilities as Supervisor:**\n\n1. **Workflow Orchestration:** Assign and coordinate the correct sequence of agents from Data Retrieval to Report Generation.  \n2. **Literature Integration:** Ensure that a comprehensive Literature Review section is included early in the report to establish the theoretical and conceptual context.  \n3. **Conflict Resolution:** Identify and resolve conflicting codes or themes across agents to ensure thematic coherence.  \n4. **Quality Assurance:** Ensure all outputs reflect rigorous academic standards, proper citation, and clarity.  \n5. **Referencing:** Confirm that every assertion in the final report is supported by a properly formatted Harvard-style citation.  \n6. **Theme Substantiation:** Ensure that each theme developed in the report is substantiated with at least one properly referenced direct quotation from the literature.  \n7. **Final Review:** Approve the final academic paper for logical flow, originality, and adherence to thematic analysis conventions.\n\n**Agent Execution Order:**  \n1. Data Retrieval Agent →  \n2. Literature Reviewer Agent →  \n3. Initial Coding Agent →  \n4. Thematic Grouping Agent →  \n5. Theme Definition & Refinement Agent →  \n6. Report Generation Agent\n7. Storage using the Write File \n\n\n\n \n\n",
+          "model": "{{chatOpenAI_0.data.instance}}",
+          "agentMemory": "",
+          "summarization": false,
+          "recursionLimit": 100,
+          "inputModeration": ""
+        },
+        "outputAnchors": [
+          {
+            "id": "supervisor_0-output-supervisor-Supervisor",
+            "name": "supervisor",
+            "label": "Supervisor",
+            "description": "",
+            "type": "Supervisor"
+          }
+        ],
+        "outputs": {},
+        "selected": false
+      },
+      "width": 300,
+      "height": 487,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 715.5095179184581,
+        "y": 334.84826865786374
+      },
+      "dragging": false
+    },
+    {
+      "id": "worker_0",
+      "position": {
+        "x": 1222.6210846831127,
+        "y": -776.4148840176556
+      },
+      "type": "customNode",
+      "data": {
+        "id": "worker_0",
+        "label": "Worker",
+        "version": 2,
+        "name": "worker",
+        "type": "Worker",
+        "hideOutput": true,
+        "baseClasses": [
+          "Worker"
+        ],
+        "category": "Multi Agents",
+        "inputParams": [
+          {
+            "label": "Worker Name",
+            "name": "workerName",
+            "type": "string",
+            "placeholder": "Worker",
+            "id": "worker_0-input-workerName-string",
+            "display": true
+          },
+          {
+            "label": "Worker Prompt",
+            "name": "workerPrompt",
+            "type": "string",
+            "rows": 4,
+            "default": "You are a research assistant who can search for up-to-date info using search engine.",
+            "id": "worker_0-input-workerPrompt-string",
+            "display": true
+          },
+          {
+            "label": "Format Prompt Values",
+            "name": "promptValues",
+            "type": "json",
+            "optional": true,
+            "acceptVariable": true,
+            "list": true,
+            "id": "worker_0-input-promptValues-json",
+            "display": true
+          },
+          {
+            "label": "Max Iterations",
+            "name": "maxIterations",
+            "type": "number",
+            "optional": true,
+            "id": "worker_0-input-maxIterations-number",
+            "display": true
+          }
+        ],
+        "inputAnchors": [
+          {
+            "label": "Tools",
+            "name": "tools",
+            "type": "Tool",
+            "list": true,
+            "optional": true,
+            "id": "worker_0-input-tools-Tool",
+            "display": true
+          },
+          {
+            "label": "Supervisor",
+            "name": "supervisor",
+            "type": "Supervisor",
+            "id": "worker_0-input-supervisor-Supervisor",
+            "display": true
+          },
+          {
+            "label": "Tool Calling Chat Model",
+            "name": "model",
+            "type": "BaseChatModel",
+            "optional": true,
+            "description": "Only compatible with models that are capable of function calling: ChatOpenAI, ChatMistral, ChatAnthropic, ChatGoogleGenerativeAI, ChatVertexAI, GroqChat. If not specified, supervisor's model will be used",
+            "id": "worker_0-input-model-BaseChatModel",
+            "display": true
+          }
+        ],
+        "inputs": {
+          "workerName": "Data Retrieval Agent",
+          "workerPrompt": "As the Data Retrieval Agent, your role is to query and retrieve academic papers and publications from the vector database using the Doc_Reader tool. Your focus is on extracting relevant and citable academic literature on Web3, Blockchain, or AI as guided by the user prompt.\n\nEnsure that all retrieved information includes metadata for citation (author, year, title, source) to support Harvard-style referencing. Provide well-structured academic chunks, clearly labeled, ready for thematic coding.\n\nThe tone should be academic but casual and spartan. Down to earth. Avoid Jargon. Generously use expressions like: “More often than not”, “It can be argued that”, “In effect”, “Ideally”, “We can infer”, etc. \n\n---\n\n**Objectives:**\n\n1. **Query Precision:** Generate targeted academic queries based on prompts from the Supervisor or other agents.\n2. **Relevant Data Retrieval:** Return scholarly excerpts that are rich in conceptual insight, avoiding web fluff.\n3. **Metadata Integrity:** Ensure all retrieved content includes citation information for Harvard-style referencing.\n4. **Output Structure:** Organize the retrieved snippets cleanly for use by the Initial Coding Agent.\n\n",
+          "tools": [
+            "{{retrieverTool_0.data.instance}}"
+          ],
+          "supervisor": "{{supervisor_0.data.instance}}",
+          "model": "",
+          "promptValues": "",
+          "maxIterations": ""
+        },
+        "outputAnchors": [],
+        "outputs": {},
+        "selected": false
+      },
+      "width": 300,
+      "height": 727,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1222.6210846831127,
+        "y": -776.4148840176556
+      },
+      "dragging": false
+    },
+    {
+      "id": "worker_1",
+      "position": {
+        "x": 2036.917401166766,
+        "y": -761.6596920129152
+      },
+      "type": "customNode",
+      "data": {
+        "id": "worker_1",
+        "label": "Worker (1)",
+        "version": 2,
+        "name": "worker",
+        "type": "Worker",
+        "hideOutput": true,
+        "baseClasses": [
+          "Worker"
+        ],
+        "category": "Multi Agents",
+        "inputParams": [
+          {
+            "label": "Worker Name",
+            "name": "workerName",
+            "type": "string",
+            "placeholder": "Worker",
+            "id": "worker_1-input-workerName-string",
+            "display": true
+          },
+          {
+            "label": "Worker Prompt",
+            "name": "workerPrompt",
+            "type": "string",
+            "rows": 4,
+            "default": "You are a research assistant who can search for up-to-date info using search engine.",
+            "id": "worker_1-input-workerPrompt-string",
+            "display": true
+          },
+          {
+            "label": "Format Prompt Values",
+            "name": "promptValues",
+            "type": "json",
+            "optional": true,
+            "acceptVariable": true,
+            "list": true,
+            "id": "worker_1-input-promptValues-json",
+            "display": true
+          },
+          {
+            "label": "Max Iterations",
+            "name": "maxIterations",
+            "type": "number",
+            "optional": true,
+            "id": "worker_1-input-maxIterations-number",
+            "display": true
+          }
+        ],
+        "inputAnchors": [
+          {
+            "label": "Tools",
+            "name": "tools",
+            "type": "Tool",
+            "list": true,
+            "optional": true,
+            "id": "worker_1-input-tools-Tool",
+            "display": true
+          },
+          {
+            "label": "Supervisor",
+            "name": "supervisor",
+            "type": "Supervisor",
+            "id": "worker_1-input-supervisor-Supervisor",
+            "display": true
+          },
+          {
+            "label": "Tool Calling Chat Model",
+            "name": "model",
+            "type": "BaseChatModel",
+            "optional": true,
+            "description": "Only compatible with models that are capable of function calling: ChatOpenAI, ChatMistral, ChatAnthropic, ChatGoogleGenerativeAI, ChatVertexAI, GroqChat. If not specified, supervisor's model will be used",
+            "id": "worker_1-input-model-BaseChatModel",
+            "display": true
+          }
+        ],
+        "inputs": {
+          "workerName": "Initial Coder",
+          "workerPrompt": "As the Initial Coding Agent, your task is to conduct open coding on the retrieved academic literature. Break down the text into meaningful units and assign descriptive codes that capture the essence of each idea, concept, or argument.\n\nEnsure each code is linked to a specific source with Harvard-style in-text citation (e.g., Smith, 2022). Highlight patterns, disagreements, emerging concepts, and foundational premises.\n\nMaintain an academic-conversational tone. Use expressions like “Generally speaking,” or “We can infer that...” when introducing insights, while remaining faithful to the literature.\nThe tone should be academic but casual and spartan. Down to earth. Avoid Jargon. Generously use expressions like: “More often than not”, “It can be argued that”, “In effect”, “Ideally”, “We can infer”, etc.  Equally use expressions like “Generally speaking,” or “We can infer that...” when introducing insights, while remaining faithful to the literature.\n\nObjectives:\n\n1. **Comprehensive Familiarization:** Read all academic data to extract significant ideas.\n2. **Code Identification:** Assign clear, descriptive labels to individual meaning units in the text.\n3. **Academic Rigor:** Ensure all codes are traceable to original scholarly sources using Harvard-style in-text citations.\n4. **Structured Output:** Present data segments alongside their codes and source citations for further processing.\n",
+          "tools": "",
+          "supervisor": "{{supervisor_0.data.instance}}",
+          "model": "",
+          "promptValues": "",
+          "maxIterations": ""
+        },
+        "outputAnchors": [],
+        "outputs": {},
+        "selected": false
+      },
+      "width": 300,
+      "height": 727,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2036.917401166766,
+        "y": -761.6596920129152
+      },
+      "dragging": false
+    },
+    {
+      "id": "worker_2",
+      "position": {
+        "x": 2406.6339022838083,
+        "y": -770.0781678715377
+      },
+      "type": "customNode",
+      "data": {
+        "id": "worker_2",
+        "label": "Worker (2)",
+        "version": 2,
+        "name": "worker",
+        "type": "Worker",
+        "hideOutput": true,
+        "baseClasses": [
+          "Worker"
+        ],
+        "category": "Multi Agents",
+        "inputParams": [
+          {
+            "label": "Worker Name",
+            "name": "workerName",
+            "type": "string",
+            "placeholder": "Worker",
+            "id": "worker_2-input-workerName-string",
+            "display": true
+          },
+          {
+            "label": "Worker Prompt",
+            "name": "workerPrompt",
+            "type": "string",
+            "rows": 4,
+            "default": "You are a research assistant who can search for up-to-date info using search engine.",
+            "id": "worker_2-input-workerPrompt-string",
+            "display": true
+          },
+          {
+            "label": "Format Prompt Values",
+            "name": "promptValues",
+            "type": "json",
+            "optional": true,
+            "acceptVariable": true,
+            "list": true,
+            "id": "worker_2-input-promptValues-json",
+            "display": true
+          },
+          {
+            "label": "Max Iterations",
+            "name": "maxIterations",
+            "type": "number",
+            "optional": true,
+            "id": "worker_2-input-maxIterations-number",
+            "display": true
+          }
+        ],
+        "inputAnchors": [
+          {
+            "label": "Tools",
+            "name": "tools",
+            "type": "Tool",
+            "list": true,
+            "optional": true,
+            "id": "worker_2-input-tools-Tool",
+            "display": true
+          },
+          {
+            "label": "Supervisor",
+            "name": "supervisor",
+            "type": "Supervisor",
+            "id": "worker_2-input-supervisor-Supervisor",
+            "display": true
+          },
+          {
+            "label": "Tool Calling Chat Model",
+            "name": "model",
+            "type": "BaseChatModel",
+            "optional": true,
+            "description": "Only compatible with models that are capable of function calling: ChatOpenAI, ChatMistral, ChatAnthropic, ChatGoogleGenerativeAI, ChatVertexAI, GroqChat. If not specified, supervisor's model will be used",
+            "id": "worker_2-input-model-BaseChatModel",
+            "display": true
+          }
+        ],
+        "inputs": {
+          "workerName": "Thematic Grouper",
+          "workerPrompt": "As the Thematic Grouping Agent, your role is to synthesize the initial codes and identify conceptual patterns. You will propose broad academic themes and justify how the codes cluster meaningfully.\n\nThe tone should be academic but casual and spartan. Down to earth. Avoid Jargon. Generously use expressions like: “More often than not”, “It can be argued that”, “In effect”, “Ideally”, “We can infer”, etc.  Equally use expressions like “Generally speaking,” or “We can infer that...” when introducing insights, while remaining faithful to the literature.\n\n---\n\n**Objectives:**\n\n1. **Code Pattern Recognition:** Analyze codes to detect cross-cutting motifs and patterns.\n2. **Theme Proposal:** Generate preliminary themes that capture conceptual relationships between codes.\n3. **Justification:** Clearly explain why certain codes were grouped under a specific theme.\n4. **Scholarly Framing:** Support each theme with illustrative quotes using language that reflects academic reasoning and includes citation signals.\n",
+          "tools": "",
+          "supervisor": "{{supervisor_0.data.instance}}",
+          "model": "",
+          "promptValues": "",
+          "maxIterations": ""
+        },
+        "outputAnchors": [],
+        "outputs": {},
+        "selected": false
+      },
+      "width": 300,
+      "height": 727,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2406.6339022838083,
+        "y": -770.0781678715377
+      },
+      "dragging": false
+    },
+    {
+      "id": "worker_3",
+      "position": {
+        "x": 2763.1513606631797,
+        "y": -780.5424541226357
+      },
+      "type": "customNode",
+      "data": {
+        "id": "worker_3",
+        "label": "Worker (3)",
+        "version": 2,
+        "name": "worker",
+        "type": "Worker",
+        "hideOutput": true,
+        "baseClasses": [
+          "Worker"
+        ],
+        "category": "Multi Agents",
+        "inputParams": [
+          {
+            "label": "Worker Name",
+            "name": "workerName",
+            "type": "string",
+            "placeholder": "Worker",
+            "id": "worker_3-input-workerName-string",
+            "display": true
+          },
+          {
+            "label": "Worker Prompt",
+            "name": "workerPrompt",
+            "type": "string",
+            "rows": 4,
+            "default": "You are a research assistant who can search for up-to-date info using search engine.",
+            "id": "worker_3-input-workerPrompt-string",
+            "display": true
+          },
+          {
+            "label": "Format Prompt Values",
+            "name": "promptValues",
+            "type": "json",
+            "optional": true,
+            "acceptVariable": true,
+            "list": true,
+            "id": "worker_3-input-promptValues-json",
+            "display": true
+          },
+          {
+            "label": "Max Iterations",
+            "name": "maxIterations",
+            "type": "number",
+            "optional": true,
+            "id": "worker_3-input-maxIterations-number",
+            "display": true
+          }
+        ],
+        "inputAnchors": [
+          {
+            "label": "Tools",
+            "name": "tools",
+            "type": "Tool",
+            "list": true,
+            "optional": true,
+            "id": "worker_3-input-tools-Tool",
+            "display": true
+          },
+          {
+            "label": "Supervisor",
+            "name": "supervisor",
+            "type": "Supervisor",
+            "id": "worker_3-input-supervisor-Supervisor",
+            "display": true
+          },
+          {
+            "label": "Tool Calling Chat Model",
+            "name": "model",
+            "type": "BaseChatModel",
+            "optional": true,
+            "description": "Only compatible with models that are capable of function calling: ChatOpenAI, ChatMistral, ChatAnthropic, ChatGoogleGenerativeAI, ChatVertexAI, GroqChat. If not specified, supervisor's model will be used",
+            "id": "worker_3-input-model-BaseChatModel",
+            "display": true
+          }
+        ],
+        "inputs": {
+          "workerName": "Theme Definer & Refiner",
+          "workerPrompt": "As the Theme Definition & Refinement Agent, you will finalize the themes by articulating them in formal academic language. Your deliverable includes refined theme names, clear definitions, scope boundaries, and illustrative quotes with Harvard-style citations.\n\nThe tone should be academic but casual and spartan. Down to earth. Avoid Jargon. Generously use expressions like: “More often than not”, “It can be argued that”, “In effect”, “Ideally”, “We can infer”, etc.  Equally use expressions like “Generally speaking,” or “We can infer that...” when introducing insights, while remaining faithful to the literature.\nUse an academic tone enriched with contextual phrases like “More often than not…”, “To unpack…”, and “It can be argued that…”\n\n\n\n---\n\n**Objectives:**\n\n1. **Precise Theme Definitions:** Write concise and clear academic definitions of each theme.\n2. **Evocative Naming:** Title themes with compelling, conceptually accurate labels.\n3. **Boundary Setting:** Delimit the scope of each theme to prevent overlap.\n4. **Quotations:**  You MUST provide at least two strong academic quotes or paraphrases (with citations) to exemplify each theme.\n",
+          "tools": "",
+          "supervisor": "{{supervisor_0.data.instance}}",
+          "model": "",
+          "promptValues": "",
+          "maxIterations": ""
+        },
+        "outputAnchors": [],
+        "outputs": {},
+        "selected": false
+      },
+      "width": 300,
+      "height": 727,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2763.1513606631797,
+        "y": -780.5424541226357
+      },
+      "dragging": false
+    },
+    {
+      "id": "worker_4",
+      "position": {
+        "x": 3447.3516891801582,
+        "y": -660.124846009132
+      },
+      "type": "customNode",
+      "data": {
+        "id": "worker_4",
+        "label": "Worker (4)",
+        "version": 2,
+        "name": "worker",
+        "type": "Worker",
+        "hideOutput": true,
+        "baseClasses": [
+          "Worker"
+        ],
+        "category": "Multi Agents",
+        "inputParams": [
+          {
+            "label": "Worker Name",
+            "name": "workerName",
+            "type": "string",
+            "placeholder": "Worker",
+            "id": "worker_4-input-workerName-string",
+            "display": true
+          },
+          {
+            "label": "Worker Prompt",
+            "name": "workerPrompt",
+            "type": "string",
+            "rows": 4,
+            "default": "You are a research assistant who can search for up-to-date info using search engine.",
+            "id": "worker_4-input-workerPrompt-string",
+            "display": true
+          },
+          {
+            "label": "Format Prompt Values",
+            "name": "promptValues",
+            "type": "json",
+            "optional": true,
+            "acceptVariable": true,
+            "list": true,
+            "id": "worker_4-input-promptValues-json",
+            "display": true
+          },
+          {
+            "label": "Max Iterations",
+            "name": "maxIterations",
+            "type": "number",
+            "optional": true,
+            "id": "worker_4-input-maxIterations-number",
+            "display": true
+          }
+        ],
+        "inputAnchors": [
+          {
+            "label": "Tools",
+            "name": "tools",
+            "type": "Tool",
+            "list": true,
+            "optional": true,
+            "id": "worker_4-input-tools-Tool",
+            "display": true
+          },
+          {
+            "label": "Supervisor",
+            "name": "supervisor",
+            "type": "Supervisor",
+            "id": "worker_4-input-supervisor-Supervisor",
+            "display": true
+          },
+          {
+            "label": "Tool Calling Chat Model",
+            "name": "model",
+            "type": "BaseChatModel",
+            "optional": true,
+            "description": "Only compatible with models that are capable of function calling: ChatOpenAI, ChatMistral, ChatAnthropic, ChatGoogleGenerativeAI, ChatVertexAI, GroqChat. If not specified, supervisor's model will be used",
+            "id": "worker_4-input-model-BaseChatModel",
+            "display": true
+          }
+        ],
+        "inputs": {
+          "workerName": "Report Generator",
+          "workerPrompt": "As the Report Generation Agent, your task is to compile a polished, academic-style **Thematic Literature Review** report. Use the outputs from all other agents to create a well-structured research paper that includes Harvard-style in-text citations and a properly formatted reference list.\n\nYour output must integrate a standalone **Literature Review section**, situated after the Introduction and before the Methodology. This section should summarize and critique key academic sources, providing the theoretical and conceptual context for the thematic analysis.\n\n\nMaintain an academic yet conversational tone. Use transitional phrases such as: “Furthermore”, “Ideally”, “We can infer”, “It is to say that”, and “In effect” to enhance clarity, scholarly tone, and readability.\nThe tone should be academic but casual and spartan. Down to earth. Avoid Jargon. Generously use expressions like: “More often than not”, “It can be argued that”, “In effect”, “Ideally”, “We can infer”, etc.  Equally use expressions like “Generally speaking,” or “We can infer that...” when introducing insights, while remaining faithful to the literature.\n\nBe sure to Save the Final Copy Locally using the Write File\n---\n\n**Required Report Structure:**\n\n1. **Abstract** *(optional but encouraged)*  \n2. **Introduction**: Set the stage for why transparency in blockchain, Web3, and AI is significant.  \n3. **Literature Review**: Summarize and synthesize academic perspectives, highlight debates and gaps.  \n4. **Methodology**: Describe the thematic analysis process used to derive themes. Avoid referring to agents by name.  \n5. **Findings**: Present clearly defined and titled themes with subheadings, definitions, scope, and citations.  \n6. **Discussion**: Unpack tensions, synthesize implications, and reflect on cross-thematic relationships.  \n7. **Conclusion**: Summarize main contributions and outline possible future research directions.  \n8. **Reference List**: Generate a complete, properly formatted Harvard-style bibliography.\n\n---\n\n**Objectives:**\n\n1. **Structured Composition**: Follow academic conventions and include the new Literature Review section.\n2. **Theme Integration**: Coherently integrate refined thematic findings into the broader narrative.\n3. **Literature Contextualization**: Connect themes back to the scholarly literature reviewed earlier.\n4. **Methodological Transparency**: Clearly explain the thematic analysis steps without naming individual agents.\n5. **Harvard Referencing**: Use consistent Harvard-style in-text citations and generate a reference list.\n6. **Clarity & Coherence**: Ensure all sections flow logically and read like a single, cohesive academic paper.\n7. **Data Storage**: You MUST Use the available WriteFile or equivalent tool to save the final version for future reference.\n",
+          "tools": [
+            "{{writeFile_0.data.instance}}"
+          ],
+          "supervisor": "{{supervisor_0.data.instance}}",
+          "model": "",
+          "promptValues": "",
+          "maxIterations": ""
+        },
+        "outputAnchors": [],
+        "outputs": {},
+        "selected": false
+      },
+      "width": 300,
+      "height": 727,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 3447.3516891801582,
+        "y": -660.124846009132
+      },
+      "dragging": false
+    },
+    {
+      "id": "qdrant_0",
+      "position": {
+        "x": -24.31411063344092,
+        "y": -786.9063910934585
+      },
+      "type": "customNode",
+      "data": {
+        "id": "qdrant_0",
+        "label": "Qdrant",
+        "version": 5,
+        "name": "qdrant",
+        "type": "Qdrant",
+        "baseClasses": [
+          "Qdrant",
+          "VectorStoreRetriever",
+          "BaseRetriever"
+        ],
+        "category": "Vector Stores",
+        "description": "Upsert embedded data and perform similarity search upon query using Qdrant, a scalable open source vector database written in Rust",
+        "inputParams": [
+          {
+            "label": "Connect Credential",
+            "name": "credential",
+            "type": "credential",
+            "description": "Only needed when using Qdrant cloud hosted",
+            "optional": true,
+            "credentialNames": [
+              "qdrantApi"
+            ],
+            "id": "qdrant_0-input-credential-credential",
+            "display": true
+          },
+          {
+            "label": "Qdrant Server URL",
+            "name": "qdrantServerUrl",
+            "type": "string",
+            "placeholder": "http://localhost:6333",
+            "id": "qdrant_0-input-qdrantServerUrl-string",
+            "display": true
+          },
+          {
+            "label": "Qdrant Collection Name",
+            "name": "qdrantCollection",
+            "type": "string",
+            "id": "qdrant_0-input-qdrantCollection-string",
+            "display": true
+          },
+          {
+            "label": "File Upload",
+            "name": "fileUpload",
+            "description": "Allow file upload on the chat",
+            "hint": {
+              "label": "How to use",
+              "value": "\n**File Upload**\n\nThis allows file upload on the chat. Uploaded files will be upserted on the fly to the vector store.\n\n**Note:**\n- You can only turn on file upload for one vector store at a time.\n- At least one Document Loader node should be connected to the document input.\n- Document Loader should be file types like PDF, DOCX, TXT, etc.\n\n**How it works**\n- Uploaded files will have the metadata updated with the chatId.\n- This will allow the file to be associated with the chatId.\n- When querying, metadata will be filtered by chatId to retrieve files associated with the chatId.\n"
+            },
+            "type": "boolean",
+            "additionalParams": true,
+            "optional": true,
+            "id": "qdrant_0-input-fileUpload-boolean",
+            "display": true
+          },
+          {
+            "label": "Vector Dimension",
+            "name": "qdrantVectorDimension",
+            "type": "number",
+            "default": 1536,
+            "additionalParams": true,
+            "id": "qdrant_0-input-qdrantVectorDimension-number",
+            "display": true
+          },
+          {
+            "label": "Content Key",
+            "name": "contentPayloadKey",
+            "description": "The key for storing text. Default to `content`",
+            "type": "string",
+            "default": "content",
+            "optional": true,
+            "additionalParams": true,
+            "id": "qdrant_0-input-contentPayloadKey-string",
+            "display": true
+          },
+          {
+            "label": "Metadata Key",
+            "name": "metadataPayloadKey",
+            "description": "The key for storing metadata. Default to `metadata`",
+            "type": "string",
+            "default": "metadata",
+            "optional": true,
+            "additionalParams": true,
+            "id": "qdrant_0-input-metadataPayloadKey-string",
+            "display": true
+          },
+          {
+            "label": "Upsert Batch Size",
+            "name": "batchSize",
+            "type": "number",
+            "step": 1,
+            "description": "Upsert in batches of size N",
+            "additionalParams": true,
+            "optional": true,
+            "id": "qdrant_0-input-batchSize-number",
+            "display": true
+          },
+          {
+            "label": "Similarity",
+            "name": "qdrantSimilarity",
+            "description": "Similarity measure used in Qdrant.",
+            "type": "options",
+            "default": "Cosine",
+            "options": [
+              {
+                "label": "Cosine",
+                "name": "Cosine"
+              },
+              {
+                "label": "Euclid",
+                "name": "Euclid"
+              },
+              {
+                "label": "Dot",
+                "name": "Dot"
+              }
+            ],
+            "additionalParams": true,
+            "id": "qdrant_0-input-qdrantSimilarity-options",
+            "display": true
+          },
+          {
+            "label": "Additional Collection Cofiguration",
+            "name": "qdrantCollectionConfiguration",
+            "description": "Refer to <a target=\"_blank\" href=\"https://qdrant.tech/documentation/concepts/collections\">collection docs</a> for more reference",
+            "type": "json",
+            "optional": true,
+            "additionalParams": true,
+            "id": "qdrant_0-input-qdrantCollectionConfiguration-json",
+            "display": true
+          },
+          {
+            "label": "Top K",
+            "name": "topK",
+            "description": "Number of top results to fetch. Default to 4",
+            "placeholder": "4",
+            "type": "number",
+            "additionalParams": true,
+            "optional": true,
+            "id": "qdrant_0-input-topK-number",
+            "display": true
+          },
+          {
+            "label": "Qdrant Search Filter",
+            "name": "qdrantFilter",
+            "description": "Only return points which satisfy the conditions",
+            "type": "json",
+            "additionalParams": true,
+            "optional": true,
+            "id": "qdrant_0-input-qdrantFilter-json",
+            "display": true
+          }
+        ],
+        "inputAnchors": [
+          {
+            "label": "Document",
+            "name": "document",
+            "type": "Document",
+            "list": true,
+            "optional": true,
+            "id": "qdrant_0-input-document-Document",
+            "display": true
+          },
+          {
+            "label": "Embeddings",
+            "name": "embeddings",
+            "type": "Embeddings",
+            "id": "qdrant_0-input-embeddings-Embeddings",
+            "display": true
+          },
+          {
+            "label": "Record Manager",
+            "name": "recordManager",
+            "type": "RecordManager",
+            "description": "Keep track of the record to prevent duplication",
+            "optional": true,
+            "id": "qdrant_0-input-recordManager-RecordManager",
+            "display": true
+          }
+        ],
+        "inputs": {
+          "document": [],
+          "embeddings": "{{openAIEmbeddings_0.data.instance}}",
+          "recordManager": "",
+          "qdrantServerUrl": "https://772394e3-5515-496c-9319-0550602a85de.eu-central-1-0.aws.cloud.qdrant.io",
+          "qdrantCollection": "ResearchDb",
+          "fileUpload": "",
+          "qdrantVectorDimension": 1536,
+          "contentPayloadKey": "content",
+          "metadataPayloadKey": "metadata",
+          "batchSize": "",
+          "qdrantSimilarity": "Cosine",
+          "qdrantCollectionConfiguration": "",
+          "topK": "",
+          "qdrantFilter": ""
+        },
+        "outputAnchors": [
+          {
+            "name": "output",
+            "label": "Output",
+            "type": "options",
+            "description": "",
+            "options": [
+              {
+                "id": "qdrant_0-output-retriever-Qdrant|VectorStoreRetriever|BaseRetriever",
+                "name": "retriever",
+                "label": "Qdrant Retriever",
+                "description": "",
+                "type": "Qdrant | VectorStoreRetriever | BaseRetriever"
+              },
+              {
+                "id": "qdrant_0-output-vectorStore-Qdrant|VectorStore",
+                "name": "vectorStore",
+                "label": "Qdrant Vector Store",
+                "description": "",
+                "type": "Qdrant | VectorStore"
+              }
+            ],
+            "default": "retriever"
+          }
+        ],
+        "outputs": {
+          "output": "retriever"
+        },
+        "selected": false
+      },
+      "width": 300,
+      "height": 709,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -24.31411063344092,
+        "y": -786.9063910934585
+      },
+      "dragging": false
+    },
+    {
+      "id": "retrieverTool_0",
+      "position": {
+        "x": 682.9338952122641,
+        "y": -803.1710956837281
+      },
+      "type": "customNode",
+      "data": {
+        "id": "retrieverTool_0",
+        "label": "Retriever Tool",
+        "version": 3,
+        "name": "retrieverTool",
+        "type": "RetrieverTool",
+        "baseClasses": [
+          "RetrieverTool",
+          "DynamicTool",
+          "Tool",
+          "StructuredTool",
+          "Runnable"
+        ],
+        "category": "Tools",
+        "description": "Use a retriever as allowed tool for agent",
+        "inputParams": [
+          {
+            "label": "Retriever Name",
+            "name": "name",
+            "type": "string",
+            "placeholder": "search_state_of_union",
+            "id": "retrieverTool_0-input-name-string",
+            "display": true
+          },
+          {
+            "label": "Retriever Description",
+            "name": "description",
+            "type": "string",
+            "description": "When should agent uses to retrieve documents",
+            "rows": 3,
+            "placeholder": "Searches and returns documents regarding the state-of-the-union.",
+            "id": "retrieverTool_0-input-description-string",
+            "display": true
+          },
+          {
+            "label": "Return Source Documents",
+            "name": "returnSourceDocuments",
+            "type": "boolean",
+            "optional": true,
+            "id": "retrieverTool_0-input-returnSourceDocuments-boolean",
+            "display": true
+          },
+          {
+            "label": "Additional Metadata Filter",
+            "name": "retrieverToolMetadataFilter",
+            "type": "json",
+            "description": "Add additional metadata filter on top of the existing filter from vector store",
+            "optional": true,
+            "additionalParams": true,
+            "hint": {
+              "label": "What can you filter?",
+              "value": "Add additional filters to vector store. You can also filter with flow config, including the current \"state\":\n- `$flow.sessionId`\n- `$flow.chatId`\n- `$flow.chatflowId`\n- `$flow.input`\n- `$flow.state`\n"
+            },
+            "id": "retrieverTool_0-input-retrieverToolMetadataFilter-json",
+            "display": true
+          }
+        ],
+        "inputAnchors": [
+          {
+            "label": "Retriever",
+            "name": "retriever",
+            "type": "BaseRetriever",
+            "id": "retrieverTool_0-input-retriever-BaseRetriever",
+            "display": true
+          }
+        ],
+        "inputs": {
+          "name": "Doc_Reader",
+          "description": "Use this tool to search information about blockchain, and web3 ",
+          "retriever": "{{qdrant_0.data.instance}}",
+          "returnSourceDocuments": "",
+          "retrieverToolMetadataFilter": ""
+        },
+        "outputAnchors": [
+          {
+            "id": "retrieverTool_0-output-retrieverTool-RetrieverTool|DynamicTool|Tool|StructuredTool|Runnable",
+            "name": "retrieverTool",
+            "label": "RetrieverTool",
+            "description": "Use a retriever as allowed tool for agent",
+            "type": "RetrieverTool | DynamicTool | Tool | StructuredTool | Runnable"
+          }
+        ],
+        "outputs": {},
+        "selected": false
+      },
+      "width": 300,
+      "height": 660,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 682.9338952122641,
+        "y": -803.1710956837281
+      },
+      "dragging": false
+    },
+    {
+      "id": "chatOpenAI_0",
+      "position": {
+        "x": 52.47821499988876,
+        "y": 201.71031857329996
+      },
+      "type": "customNode",
+      "data": {
+        "id": "chatOpenAI_0",
+        "label": "ChatOpenAI",
+        "version": 8.2,
+        "name": "chatOpenAI",
+        "type": "ChatOpenAI",
+        "baseClasses": [
+          "ChatOpenAI",
+          "BaseChatModel",
+          "BaseLanguageModel",
+          "Runnable"
+        ],
+        "category": "Chat Models",
+        "description": "Wrapper around OpenAI large language models that use the Chat endpoint",
+        "inputParams": [
+          {
+            "label": "Connect Credential",
+            "name": "credential",
+            "type": "credential",
+            "credentialNames": [
+              "openAIApi"
+            ],
+            "id": "chatOpenAI_0-input-credential-credential",
+            "display": true
+          },
+          {
+            "label": "Model Name",
+            "name": "modelName",
+            "type": "asyncOptions",
+            "loadMethod": "listModels",
+            "default": "gpt-4o-mini",
+            "id": "chatOpenAI_0-input-modelName-asyncOptions",
+            "display": true
+          },
+          {
+            "label": "Temperature",
+            "name": "temperature",
+            "type": "number",
+            "step": 0.1,
+            "default": 0.9,
+            "optional": true,
+            "id": "chatOpenAI_0-input-temperature-number",
+            "display": true
+          },
+          {
+            "label": "Streaming",
+            "name": "streaming",
+            "type": "boolean",
+            "default": true,
+            "optional": true,
+            "additionalParams": true,
+            "id": "chatOpenAI_0-input-streaming-boolean",
+            "display": true
+          },
+          {
+            "label": "Max Tokens",
+            "name": "maxTokens",
+            "type": "number",
+            "step": 1,
+            "optional": true,
+            "additionalParams": true,
+            "id": "chatOpenAI_0-input-maxTokens-number",
+            "display": true
+          },
+          {
+            "label": "Top Probability",
+            "name": "topP",
+            "type": "number",
+            "step": 0.1,
+            "optional": true,
+            "additionalParams": true,
+            "id": "chatOpenAI_0-input-topP-number",
+            "display": true
+          },
+          {
+            "label": "Frequency Penalty",
+            "name": "frequencyPenalty",
+            "type": "number",
+            "step": 0.1,
+            "optional": true,
+            "additionalParams": true,
+            "id": "chatOpenAI_0-input-frequencyPenalty-number",
+            "display": true
+          },
+          {
+            "label": "Presence Penalty",
+            "name": "presencePenalty",
+            "type": "number",
+            "step": 0.1,
+            "optional": true,
+            "additionalParams": true,
+            "id": "chatOpenAI_0-input-presencePenalty-number",
+            "display": true
+          },
+          {
+            "label": "Timeout",
+            "name": "timeout",
+            "type": "number",
+            "step": 1,
+            "optional": true,
+            "additionalParams": true,
+            "id": "chatOpenAI_0-input-timeout-number",
+            "display": true
+          },
+          {
+            "label": "Strict Tool Calling",
+            "name": "strictToolCalling",
+            "type": "boolean",
+            "description": "Whether the model supports the `strict` argument when passing in tools. If not specified, the `strict` argument will not be passed to OpenAI.",
+            "optional": true,
+            "additionalParams": true,
+            "id": "chatOpenAI_0-input-strictToolCalling-boolean",
+            "display": true
+          },
+          {
+            "label": "Stop Sequence",
+            "name": "stopSequence",
+            "type": "string",
+            "rows": 4,
+            "optional": true,
+            "description": "List of stop words to use when generating. Use comma to separate multiple stop words.",
+            "additionalParams": true,
+            "id": "chatOpenAI_0-input-stopSequence-string",
+            "display": true
+          },
+          {
+            "label": "BasePath",
+            "name": "basepath",
+            "type": "string",
+            "optional": true,
+            "additionalParams": true,
+            "id": "chatOpenAI_0-input-basepath-string",
+            "display": true
+          },
+          {
+            "label": "Proxy Url",
+            "name": "proxyUrl",
+            "type": "string",
+            "optional": true,
+            "additionalParams": true,
+            "id": "chatOpenAI_0-input-proxyUrl-string",
+            "display": true
+          },
+          {
+            "label": "BaseOptions",
+            "name": "baseOptions",
+            "type": "json",
+            "optional": true,
+            "additionalParams": true,
+            "id": "chatOpenAI_0-input-baseOptions-json",
+            "display": true
+          },
+          {
+            "label": "Allow Image Uploads",
+            "name": "allowImageUploads",
+            "type": "boolean",
+            "description": "Allow image input. Refer to the <a href=\"https://docs.flowiseai.com/using-flowise/uploads#image\" target=\"_blank\">docs</a> for more details.",
+            "default": false,
+            "optional": true,
+            "id": "chatOpenAI_0-input-allowImageUploads-boolean",
+            "display": true
+          },
+          {
+            "label": "Image Resolution",
+            "description": "This parameter controls the resolution in which the model views the image.",
+            "name": "imageResolution",
+            "type": "options",
+            "options": [
+              {
+                "label": "Low",
+                "name": "low"
+              },
+              {
+                "label": "High",
+                "name": "high"
+              },
+              {
+                "label": "Auto",
+                "name": "auto"
+              }
+            ],
+            "default": "low",
+            "optional": false,
+            "show": {
+              "allowImageUploads": true
+            },
+            "id": "chatOpenAI_0-input-imageResolution-options",
+            "display": false
+          },
+          {
+            "label": "Reasoning Effort",
+            "description": "Constrains effort on reasoning for reasoning models. Only applicable for o1 and o3 models.",
+            "name": "reasoningEffort",
+            "type": "options",
+            "options": [
+              {
+                "label": "Low",
+                "name": "low"
+              },
+              {
+                "label": "Medium",
+                "name": "medium"
+              },
+              {
+                "label": "High",
+                "name": "high"
+              }
+            ],
+            "default": "medium",
+            "optional": false,
+            "additionalParams": true,
+            "id": "chatOpenAI_0-input-reasoningEffort-options",
+            "display": true
+          }
+        ],
+        "inputAnchors": [
+          {
+            "label": "Cache",
+            "name": "cache",
+            "type": "BaseCache",
+            "optional": true,
+            "id": "chatOpenAI_0-input-cache-BaseCache",
+            "display": true
+          }
+        ],
+        "inputs": {
+          "cache": "",
+          "modelName": "gpt-4-turbo",
+          "temperature": "0.5",
+          "streaming": true,
+          "maxTokens": "",
+          "topP": "",
+          "frequencyPenalty": "",
+          "presencePenalty": "",
+          "timeout": "",
+          "strictToolCalling": "",
+          "stopSequence": "",
+          "basepath": "",
+          "proxyUrl": "",
+          "baseOptions": "",
+          "allowImageUploads": false,
+          "imageResolution": "low",
+          "reasoningEffort": "medium"
+        },
+        "outputAnchors": [
+          {
+            "id": "chatOpenAI_0-output-chatOpenAI-ChatOpenAI|BaseChatModel|BaseLanguageModel|Runnable",
+            "name": "chatOpenAI",
+            "label": "ChatOpenAI",
+            "description": "Wrapper around OpenAI large language models that use the Chat endpoint",
+            "type": "ChatOpenAI | BaseChatModel | BaseLanguageModel | Runnable"
+          }
+        ],
+        "outputs": {},
+        "selected": false
+      },
+      "width": 300,
+      "height": 674,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 52.47821499988876,
+        "y": 201.71031857329996
+      },
+      "dragging": false
+    },
+    {
+      "id": "writeFile_0",
+      "position": {
+        "x": 2911.675559283546,
+        "y": -1247.8416329262914
+      },
+      "type": "customNode",
+      "data": {
+        "id": "writeFile_0",
+        "label": "Write File",
+        "version": 1,
+        "name": "writeFile",
+        "type": "WriteFile",
+        "baseClasses": [
+          "WriteFile",
+          "Tool",
+          "StructuredTool",
+          "Runnable"
+        ],
+        "category": "Tools",
+        "description": "Write file to disk",
+        "inputParams": [
+          {
+            "label": "Base Path",
+            "name": "basePath",
+            "placeholder": "C:\\Users\\User\\Desktop",
+            "type": "string",
+            "optional": true,
+            "id": "writeFile_0-input-basePath-string",
+            "display": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "basePath": "/Users/manu-acho/flowise_write"
+        },
+        "outputAnchors": [
+          {
+            "id": "writeFile_0-output-writeFile-WriteFile|Tool|StructuredTool|Runnable",
+            "name": "writeFile",
+            "label": "WriteFile",
+            "description": "Write file to disk",
+            "type": "WriteFile | Tool | StructuredTool | Runnable"
+          }
+        ],
+        "outputs": {},
+        "selected": false
+      },
+      "width": 300,
+      "height": 283,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 2911.675559283546,
+        "y": -1247.8416329262914
+      },
+      "dragging": false
+    },
+    {
+      "id": "worker_5",
+      "position": {
+        "x": 1644.7652964437752,
+        "y": -738.29928049901
+      },
+      "type": "customNode",
+      "data": {
+        "id": "worker_5",
+        "label": "Worker (5)",
+        "version": 2,
+        "name": "worker",
+        "type": "Worker",
+        "hideOutput": true,
+        "baseClasses": [
+          "Worker"
+        ],
+        "category": "Multi Agents",
+        "inputParams": [
+          {
+            "label": "Worker Name",
+            "name": "workerName",
+            "type": "string",
+            "placeholder": "Worker",
+            "id": "worker_5-input-workerName-string",
+            "display": true
+          },
+          {
+            "label": "Worker Prompt",
+            "name": "workerPrompt",
+            "type": "string",
+            "rows": 4,
+            "default": "You are a research assistant who can search for up-to-date info using search engine.",
+            "id": "worker_5-input-workerPrompt-string",
+            "display": true
+          },
+          {
+            "label": "Format Prompt Values",
+            "name": "promptValues",
+            "type": "json",
+            "optional": true,
+            "acceptVariable": true,
+            "list": true,
+            "id": "worker_5-input-promptValues-json",
+            "display": true
+          },
+          {
+            "label": "Max Iterations",
+            "name": "maxIterations",
+            "type": "number",
+            "optional": true,
+            "id": "worker_5-input-maxIterations-number",
+            "display": true
+          }
+        ],
+        "inputAnchors": [
+          {
+            "label": "Tools",
+            "name": "tools",
+            "type": "Tool",
+            "list": true,
+            "optional": true,
+            "id": "worker_5-input-tools-Tool",
+            "display": true
+          },
+          {
+            "label": "Supervisor",
+            "name": "supervisor",
+            "type": "Supervisor",
+            "id": "worker_5-input-supervisor-Supervisor",
+            "display": true
+          },
+          {
+            "label": "Tool Calling Chat Model",
+            "name": "model",
+            "type": "BaseChatModel",
+            "optional": true,
+            "description": "Only compatible with models that are capable of function calling: ChatOpenAI, ChatMistral, ChatAnthropic, ChatGoogleGenerativeAI, ChatVertexAI, GroqChat. If not specified, supervisor's model will be used",
+            "id": "worker_5-input-model-BaseChatModel",
+            "display": true
+          }
+        ],
+        "inputs": {
+          "workerName": "Literature Reviewer",
+          "workerPrompt": "You are the Literature Reviewer Agent. Your task is to synthesize and evaluate the key academic publications retrieved by the Data Retrieval Agent to produce a formal **Literature Review** section.\n\nYou must compare how different scholars conceptualize transparency across blockchain, Web3, and AI; highlight key debates; identify knowledge gaps; and justify the need for a thematic analysis.\n\nThe tone should be academic but casual and spartan. Down to earth. Avoid Jargon. Generously use expressions like: “More often than not”, “It can be argued that”, “In effect”, “Ideally”, “We can infer”, etc. \n\n---\n\n**Objectives:**\n\n1. Contextual Framing: Situate the topic of transparency within academic debates in the selected domains.\n2. Comparative Synthesis: Compare how authors approach the issue — including areas of agreement, disagreement, and evolution.\n3. Identify Gaps: Point out any theoretical, empirical, or methodological gaps that justify a deeper thematic analysis.\n4. Citations: Include Harvard-style in-text citations.\n5. Deliverable: Output a self-contained Literature Review section to be used in the final report.\n\n---\n\n**Use the following format for Harvard-style citations:**\n\n**In-text citation examples:**\n- Narrative: According to Mason (2020), transparency is central to building trust in blockchain ecosystems.\n- Parenthetical: Transparency is often linked to user empowerment in decentralized systems (O’Reilly, 2019).\n\n**Reference List format (used at the end of the paper):**\n- Mason, J. (2020). *The Role of Trust in Blockchain Technology*. Journal of Digital Innovation, 12(3), pp.45–58.\n- O’Reilly, T. (2019). *The Open Future: Transparency in a Decentralized Internet*. Web3 Journal, 7(1), pp.12–29.\n\nEnsure that all in-text citations match entries that would be added to the reference list.\n\n\n",
+          "tools": [],
+          "supervisor": "{{supervisor_0.data.instance}}",
+          "model": "",
+          "promptValues": "",
+          "maxIterations": ""
+        },
+        "outputAnchors": [],
+        "outputs": {},
+        "selected": false
+      },
+      "width": 300,
+      "height": 727,
+      "selected": false,
+      "positionAbsolute": {
+        "x": 1644.7652964437752,
+        "y": -738.29928049901
+      },
+      "dragging": false
+    },
+    {
+      "id": "openAIEmbeddings_0",
+      "position": {
+        "x": -713.745325725269,
+        "y": -535.9154985843078
+      },
+      "type": "customNode",
+      "data": {
+        "id": "openAIEmbeddings_0",
+        "label": "OpenAI Embeddings",
+        "version": 4,
+        "name": "openAIEmbeddings",
+        "type": "OpenAIEmbeddings",
+        "baseClasses": [
+          "OpenAIEmbeddings",
+          "Embeddings"
+        ],
+        "category": "Embeddings",
+        "description": "OpenAI API to generate embeddings for a given text",
+        "inputParams": [
+          {
+            "label": "Connect Credential",
+            "name": "credential",
+            "type": "credential",
+            "credentialNames": [
+              "openAIApi"
+            ],
+            "id": "openAIEmbeddings_0-input-credential-credential",
+            "display": true
+          },
+          {
+            "label": "Model Name",
+            "name": "modelName",
+            "type": "asyncOptions",
+            "loadMethod": "listModels",
+            "default": "text-embedding-ada-002",
+            "id": "openAIEmbeddings_0-input-modelName-asyncOptions",
+            "display": true
+          },
+          {
+            "label": "Strip New Lines",
+            "name": "stripNewLines",
+            "type": "boolean",
+            "optional": true,
+            "additionalParams": true,
+            "id": "openAIEmbeddings_0-input-stripNewLines-boolean",
+            "display": true
+          },
+          {
+            "label": "Batch Size",
+            "name": "batchSize",
+            "type": "number",
+            "optional": true,
+            "additionalParams": true,
+            "id": "openAIEmbeddings_0-input-batchSize-number",
+            "display": true
+          },
+          {
+            "label": "Timeout",
+            "name": "timeout",
+            "type": "number",
+            "optional": true,
+            "additionalParams": true,
+            "id": "openAIEmbeddings_0-input-timeout-number",
+            "display": true
+          },
+          {
+            "label": "BasePath",
+            "name": "basepath",
+            "type": "string",
+            "optional": true,
+            "additionalParams": true,
+            "id": "openAIEmbeddings_0-input-basepath-string",
+            "display": true
+          },
+          {
+            "label": "Dimensions",
+            "name": "dimensions",
+            "type": "number",
+            "optional": true,
+            "additionalParams": true,
+            "id": "openAIEmbeddings_0-input-dimensions-number",
+            "display": true
+          }
+        ],
+        "inputAnchors": [],
+        "inputs": {
+          "modelName": "text-embedding-ada-002",
+          "stripNewLines": "",
+          "batchSize": "",
+          "timeout": "",
+          "basepath": "",
+          "dimensions": ""
+        },
+        "outputAnchors": [
+          {
+            "id": "openAIEmbeddings_0-output-openAIEmbeddings-OpenAIEmbeddings|Embeddings",
+            "name": "openAIEmbeddings",
+            "label": "OpenAIEmbeddings",
+            "description": "OpenAI API to generate embeddings for a given text",
+            "type": "OpenAIEmbeddings | Embeddings"
+          }
+        ],
+        "outputs": {},
+        "selected": false
+      },
+      "width": 300,
+      "height": 428,
+      "selected": false,
+      "positionAbsolute": {
+        "x": -713.745325725269,
+        "y": -535.9154985843078
+      },
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "retrieverTool_0",
+      "sourceHandle": "retrieverTool_0-output-retrieverTool-RetrieverTool|DynamicTool|Tool|StructuredTool|Runnable",
+      "target": "worker_0",
+      "targetHandle": "worker_0-input-tools-Tool",
+      "type": "buttonedge",
+      "id": "retrieverTool_0-retrieverTool_0-output-retrieverTool-RetrieverTool|DynamicTool|Tool|StructuredTool|Runnable-worker_0-worker_0-input-tools-Tool"
+    },
+    {
+      "source": "supervisor_0",
+      "sourceHandle": "supervisor_0-output-supervisor-Supervisor",
+      "target": "worker_0",
+      "targetHandle": "worker_0-input-supervisor-Supervisor",
+      "type": "buttonedge",
+      "id": "supervisor_0-supervisor_0-output-supervisor-Supervisor-worker_0-worker_0-input-supervisor-Supervisor"
+    },
+    {
+      "source": "supervisor_0",
+      "sourceHandle": "supervisor_0-output-supervisor-Supervisor",
+      "target": "worker_1",
+      "targetHandle": "worker_1-input-supervisor-Supervisor",
+      "type": "buttonedge",
+      "id": "supervisor_0-supervisor_0-output-supervisor-Supervisor-worker_1-worker_1-input-supervisor-Supervisor"
+    },
+    {
+      "source": "supervisor_0",
+      "sourceHandle": "supervisor_0-output-supervisor-Supervisor",
+      "target": "worker_2",
+      "targetHandle": "worker_2-input-supervisor-Supervisor",
+      "type": "buttonedge",
+      "id": "supervisor_0-supervisor_0-output-supervisor-Supervisor-worker_2-worker_2-input-supervisor-Supervisor"
+    },
+    {
+      "source": "supervisor_0",
+      "sourceHandle": "supervisor_0-output-supervisor-Supervisor",
+      "target": "worker_3",
+      "targetHandle": "worker_3-input-supervisor-Supervisor",
+      "type": "buttonedge",
+      "id": "supervisor_0-supervisor_0-output-supervisor-Supervisor-worker_3-worker_3-input-supervisor-Supervisor"
+    },
+    {
+      "source": "supervisor_0",
+      "sourceHandle": "supervisor_0-output-supervisor-Supervisor",
+      "target": "worker_4",
+      "targetHandle": "worker_4-input-supervisor-Supervisor",
+      "type": "buttonedge",
+      "id": "supervisor_0-supervisor_0-output-supervisor-Supervisor-worker_4-worker_4-input-supervisor-Supervisor"
+    },
+    {
+      "source": "chatOpenAI_0",
+      "sourceHandle": "chatOpenAI_0-output-chatOpenAI-ChatOpenAI|BaseChatModel|BaseLanguageModel|Runnable",
+      "target": "supervisor_0",
+      "targetHandle": "supervisor_0-input-model-BaseChatModel",
+      "type": "buttonedge",
+      "id": "chatOpenAI_0-chatOpenAI_0-output-chatOpenAI-ChatOpenAI|BaseChatModel|BaseLanguageModel|Runnable-supervisor_0-supervisor_0-input-model-BaseChatModel"
+    },
+    {
+      "source": "writeFile_0",
+      "sourceHandle": "writeFile_0-output-writeFile-WriteFile|Tool|StructuredTool|Runnable",
+      "target": "worker_4",
+      "targetHandle": "worker_4-input-tools-Tool",
+      "type": "buttonedge",
+      "id": "writeFile_0-writeFile_0-output-writeFile-WriteFile|Tool|StructuredTool|Runnable-worker_4-worker_4-input-tools-Tool"
+    },
+    {
+      "source": "qdrant_0",
+      "sourceHandle": "qdrant_0-output-retriever-Qdrant|VectorStoreRetriever|BaseRetriever",
+      "target": "retrieverTool_0",
+      "targetHandle": "retrieverTool_0-input-retriever-BaseRetriever",
+      "type": "buttonedge",
+      "id": "qdrant_0-qdrant_0-output-retriever-Qdrant|VectorStoreRetriever|BaseRetriever-retrieverTool_0-retrieverTool_0-input-retriever-BaseRetriever"
+    },
+    {
+      "source": "supervisor_0",
+      "sourceHandle": "supervisor_0-output-supervisor-Supervisor",
+      "target": "worker_5",
+      "targetHandle": "worker_5-input-supervisor-Supervisor",
+      "type": "buttonedge",
+      "id": "supervisor_0-supervisor_0-output-supervisor-Supervisor-worker_5-worker_5-input-supervisor-Supervisor"
+    },
+    {
+      "source": "openAIEmbeddings_0",
+      "sourceHandle": "openAIEmbeddings_0-output-openAIEmbeddings-OpenAIEmbeddings|Embeddings",
+      "target": "qdrant_0",
+      "targetHandle": "qdrant_0-input-embeddings-Embeddings",
+      "type": "buttonedge",
+      "id": "openAIEmbeddings_0-openAIEmbeddings_0-output-openAIEmbeddings-OpenAIEmbeddings|Embeddings-qdrant_0-qdrant_0-input-embeddings-Embeddings"
+    }
+  ]
+}
