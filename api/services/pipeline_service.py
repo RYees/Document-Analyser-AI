@@ -895,3 +895,221 @@ class PipelineService:
                 "error": f"Failed to download report: {str(e)}",
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
+
+    def retry_pipeline_step(self, pipeline_id: str, step_name: str) -> Dict[str, Any]:
+        """
+        Retry a specific step in a pipeline.
+        
+        Args:
+            pipeline_id: The ID of the pipeline
+            step_name: The name of the step to retry
+            
+        Returns:
+            Dict containing success status and updated pipeline data
+        """
+        try:
+            # Get current pipeline state
+            pipeline_state = self.storage_manager.get_pipeline(pipeline_id)
+            if not pipeline_state:
+                return {
+                    "success": False,
+                    "error": f"Pipeline not found: {pipeline_id}"
+                }
+            
+            # Check if pipeline is in a state that can be retried
+            if pipeline_state["status"] == "completed":
+                return {
+                    "success": False,
+                    "error": "Cannot retry steps in a completed pipeline"
+                }
+            
+            if pipeline_state["status"] == "running":
+                return {
+                    "success": False,
+                    "error": "Cannot retry steps while pipeline is running"
+                }
+            
+            # Map step names to step numbers
+            step_mapping = {
+                "document_retrieval": 1,
+                "literature_review": 2,
+                "initial_coding": 3,
+                "thematic_grouping": 4,
+                "theme_refinement": 5,
+                "report_generation": 6
+            }
+            
+            if step_name not in step_mapping:
+                return {
+                    "success": False,
+                    "error": f"Invalid step name: {step_name}. Valid steps: {list(step_mapping.keys())}"
+                }
+            
+            step_number = step_mapping[step_name]
+            
+            # Reset the pipeline to the specified step
+            pipeline_state["current_step"] = step_number
+            pipeline_state["status"] = "running"
+            pipeline_state["error_message"] = ""
+            
+            # Clear results from this step onwards
+            if "results" in pipeline_state:
+                for i in range(step_number, 7):  # Clear steps from current to end
+                    step_key = str(i)
+                    if step_key in pipeline_state["results"]:
+                        pipeline_state["results"][step_key] = None
+            
+            # Update pipeline state
+            self.storage_manager.update_pipeline(pipeline_id, pipeline_state)
+            
+            # Start the pipeline from the specified step
+            asyncio.create_task(self._continue_pipeline_from_step(pipeline_id, step_number))
+            
+            return {
+                "success": True,
+                "data": {
+                    "pipeline_id": pipeline_id,
+                    "step_name": step_name,
+                    "step_number": step_number,
+                    "status": "running",
+                    "message": f"Pipeline restarted from step {step_number}: {step_name}"
+                }
+            }
+            
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to retry pipeline step: {str(e)}"
+            }
+
+    async def _continue_pipeline_from_step(self, pipeline_id: str, start_step: int):
+        """
+        Continue pipeline execution from a specific step.
+        
+        Args:
+            pipeline_id: The ID of the pipeline
+            start_step: The step number to start from
+        """
+        try:
+            # Get pipeline state
+            pipeline_state = self.storage_manager.get_pipeline(pipeline_id)
+            if not pipeline_state:
+                print(f"[PIPELINE] ❌ Pipeline not found for continuation: {pipeline_id}")
+                return
+            
+            # Get pipeline data
+            query = pipeline_state.get("query", "")
+            research_domain = pipeline_state.get("research_domain", "")
+            
+            # Execute steps from start_step onwards
+            current_step = start_step
+            
+            # Step 1: Document Retrieval (if starting from step 1)
+            if current_step == 1:
+                success, documents_result, error = await self._step_document_retrieval(pipeline_id, query, research_domain)
+                if not success:
+                    return
+                current_step += 1
+            
+            # Step 2: Literature Review (if starting from step 2 or later)
+            if current_step == 2:
+                documents = pipeline_state["results"]["1"]["data"]["documents"]
+                success, literature_result, error = await self._step_literature_review(pipeline_id, documents, research_domain)
+                if not success:
+                    return
+                current_step += 1
+            
+            # Step 3: Initial Coding (if starting from step 3 or later)
+            if current_step == 3:
+                documents = pipeline_state["results"]["1"]["data"]["documents"]
+                success, coding_result, error = await self._step_initial_coding(pipeline_id, documents, research_domain)
+                if not success:
+                    return
+                current_step += 1
+            
+            # Step 4: Thematic Grouping (if starting from step 4 or later)
+            if current_step == 4:
+                coded_units = pipeline_state["results"]["3"]["data"]["coded_units"]
+                success, thematic_result, error = await self._step_thematic_grouping(pipeline_id, coded_units, research_domain)
+                if not success:
+                    return
+                current_step += 1
+            
+            # Step 5: Theme Refinement (if starting from step 5 or later)
+            if current_step == 5:
+                themes = pipeline_state["results"]["4"]["data"]["themes"]
+                success, refinement_result, error = await self._step_theme_refinement(pipeline_id, themes, research_domain)
+                if not success:
+                    return
+                current_step += 1
+            
+            # Step 6: Report Generation (if starting from step 6)
+            if current_step == 6:
+                all_sections = {
+                    "documents": pipeline_state["results"]["1"]["data"]["documents"],
+                    "literature_review": pipeline_state["results"]["2"]["data"],
+                    "coding_results": pipeline_state["results"]["3"]["data"],
+                    "thematic_analysis": pipeline_state["results"]["4"]["data"],
+                    "theme_refinement": pipeline_state["results"]["5"]["data"]
+                }
+                success, report_result, error = await self._step_report_generation(pipeline_id, all_sections)
+                if not success:
+                    return
+            
+            # Pipeline completed successfully
+            await self._finalize_pipeline(pipeline_id, "completed", "Pipeline completed successfully")
+            
+        except Exception as e:
+            print(f"[PIPELINE] ❌ Error continuing pipeline from step {start_step}: {str(e)}")
+            await self._finalize_pipeline(pipeline_id, "failed", f"Pipeline continuation failed: {str(e)}")
+
+    def halt_pipeline(self, pipeline_id: str, reason: str = "User requested halt") -> Dict[str, Any]:
+        """
+        Halt a running pipeline.
+        
+        Args:
+            pipeline_id: The ID of the pipeline
+            reason: The reason for halting the pipeline
+            
+        Returns:
+            Dict containing success status and updated pipeline data
+        """
+        try:
+            # Get current pipeline state
+            pipeline_state = self.storage_manager.get_pipeline(pipeline_id)
+            if not pipeline_state:
+                return {
+                    "success": False,
+                    "error": f"Pipeline not found: {pipeline_id}"
+                }
+            
+            # Check if pipeline can be halted
+            if pipeline_state["status"] != "running":
+                return {
+                    "success": False,
+                    "error": f"Cannot halt pipeline with status: {pipeline_state['status']}"
+                }
+            
+            # Update pipeline state to halted
+            pipeline_state["status"] = "halted"
+            pipeline_state["error_message"] = reason
+            pipeline_state["completed_at"] = datetime.now(timezone.utc).isoformat()
+            
+            # Update pipeline state
+            self.storage_manager.update_pipeline(pipeline_id, pipeline_state)
+            
+            return {
+                "success": True,
+                "data": {
+                    "pipeline_id": pipeline_id,
+                    "status": "halted",
+                    "reason": reason,
+                    "halted_at": pipeline_state["completed_at"]
+                }
+            }
+            
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to halt pipeline: {str(e)}"
+            }
