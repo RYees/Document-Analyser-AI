@@ -115,65 +115,21 @@ class InitialCodingAgent:
         
         return refined_paragraphs
 
-    def _build_coding_prompt(self, meaning_units: List[MeaningUnit], research_domain: str = "General") -> str:
+    def _build_coding_prompt(self, meaning_units: List[MeaningUnit], research_domain: str = "General",
+                            supervisor_feedback=None, previous_attempts=None, attempt_number=1, max_attempts=3) -> str:
         """
         Construct a prompt for the LLM to perform open coding.
         """
-        content_parts = [
-            f"Research Domain: {research_domain}",
-            f"Number of Meaning Units to Code: {len(meaning_units)}",
-            "\n=== MEANING UNITS FOR CODING ===\n"
-        ]
+        from api.agents.agent_prompts.initial_coding_prompts import InitialCodingPrompts
         
-        for i, unit in enumerate(meaning_units, 1):
-            authors_str = ', '.join(unit.source_authors)
-            content_parts.extend([
-                f"Unit {i} (ID: {unit.unit_id}):",
-                f"Source: {unit.source_paper}",
-                f"Authors: {authors_str}",
-                f"Year: {unit.source_year}",
-                f"Content: {unit.content}",
-                "\n" + "-"*40 + "\n"
-            ])
-        
-        prompt = f"""As the Initial Coding Agent, your task is to conduct open coding on the retrieved academic literature. Break down the text into meaningful units and assign descriptive codes that capture the essence of each idea, concept, or argument.
-
-Ensure each code is linked to a specific source with Harvard-style in-text citation (e.g., Smith, 2022). Highlight patterns, disagreements, emerging concepts, and foundational premises.
-
-Maintain an academic-conversational tone. Use expressions like "Generally speaking," or "We can infer that..." when introducing insights, while remaining faithful to the literature.
-The tone should be academic but casual and spartan. Down to earth. Avoid Jargon. Generously use expressions like: "More often than not", "It can be argued that", "In effect", "Ideally", "We can infer", etc.  Equally use expressions like "Generally speaking," or "We can infer that..." when introducing insights, while remaining faithful to the literature.
-
-**Objectives:**
-
-1. **Comprehensive Familiarization:** Read all academic data to extract significant ideas.
-2. **Code Identification:** Assign clear, descriptive labels to individual meaning units in the text.
-3. **Academic Rigor:** Ensure all codes are traceable to original scholarly sources using Harvard-style in-text citations.
-4. **Structured Output:** Present data segments alongside their codes and source citations for further processing.
-
-**Coding Guidelines:**
-- Use descriptive, plain-English codes (e.g., "stakeholder engagement", "governance transparency", "decentralization challenges")
-- Create both primary codes (main concepts) and sub-codes (specific aspects)
-- Provide clear definitions for each code
-- Assess confidence in your coding (0.0-1.0)
-- Be consistent with similar concepts across units
-- Focus on what the text is about, not your interpretation
-
-**Output Format:**
-For each meaning unit, provide:
-1. Unit ID
-2. Primary codes with definitions
-3. Sub-codes with definitions  
-4. Harvard-style citations
-5. Key insights or patterns
-6. Confidence scores
-
-**Based on the following meaning units, perform open coding:**
-
-{chr(10).join(content_parts)}
-
-Please provide structured coding results for each meaning unit, following the guidelines above."""
-        
-        return prompt
+        return InitialCodingPrompts.build_coding_prompt(
+            meaning_units=meaning_units,
+            research_domain=research_domain,
+            supervisor_feedback=supervisor_feedback,
+            previous_attempts=previous_attempts,
+            attempt_number=attempt_number,
+            max_attempts=max_attempts
+        )
 
     def _parse_coding_response(self, response: str, meaning_units: List[MeaningUnit]) -> List[CodedUnit]:
         """
@@ -514,7 +470,8 @@ Please provide structured coding results for each meaning unit, following the gu
             "average_confidence": sum(code.confidence for unit in coded_units for code in unit.codes) / len(all_codes) if all_codes else 0.0
         }
 
-    async def run(self, documents: List[Dict[str, Any]], research_domain: str = "General") -> Dict[str, Any]:
+    async def run(self, documents: List[Dict[str, Any]], research_domain: str = "General",
+                 supervisor_feedback=None, previous_attempts=None, attempt_number=1, max_attempts=3) -> Dict[str, Any]:
         """
         Main entry point for initial coding.
         Args:
@@ -539,7 +496,7 @@ Please provide structured coding results for each meaning unit, following the gu
             
             # Step 2: Build coding prompt
             print(f"[DEBUG] Step 2: Building coding prompt...")
-            prompt = self._build_coding_prompt(meaning_units, research_domain)
+            prompt = self._build_coding_prompt(meaning_units, research_domain, supervisor_feedback, previous_attempts, attempt_number, max_attempts)
             print(f"[DEBUG] Generated prompt length: {len(prompt)} characters")
             
             if not self.llm_backend:

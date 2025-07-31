@@ -50,56 +50,21 @@ class ThemeRefinerAgent:
         
         return "\n".join(theme_parts)
 
-    def _build_refinement_prompt(self, themes: List[Dict[str, Any]], research_domain: str = "General") -> str:
+    def _build_refinement_prompt(self, themes: List[Dict[str, Any]], research_domain: str = "General",
+                                supervisor_feedback=None, previous_attempts=None, attempt_number=1, max_attempts=3) -> str:
         """
         Construct a prompt for the LLM to perform theme refinement.
         """
-        themes_data = self._prepare_themes_for_refinement(themes)
+        from api.agents.agent_prompts.theme_refiner_prompts import ThemeRefinerPrompts
         
-        prompt = f"""As the Theme Definition & Refinement Agent, you will finalize the themes by articulating them in formal academic language. Your deliverable includes refined theme names, clear definitions, scope boundaries, and illustrative quotes with Harvard-style citations.
-
-The tone should be academic but casual and spartan. Down to earth. Avoid Jargon. Generously use expressions like: "More often than not", "It can be argued that", "In effect", "Ideally", "We can infer", etc.  Equally use expressions like "Generally speaking," or "We can infer that..." when introducing insights, while remaining faithful to the literature.
-Use an academic tone enriched with contextual phrases like "More often than not…", "To unpack…", and "It can be argued that…"
-
----
-
-**Objectives:**
-
-1. **Precise Theme Definitions:** Write concise and clear academic definitions of each theme.
-2. **Evocative Naming:** Title themes with compelling, conceptually accurate labels.
-3. **Boundary Setting:** Delimit the scope of each theme to prevent overlap.
-4. **Quotations:**  You MUST provide at least two strong academic quotes or paraphrases (with citations) to exemplify each theme.
-
----
-
-**Refinement Guidelines:**
-
-- **Academic Precision:** Use formal academic language while maintaining accessibility
-- **Conceptual Clarity:** Ensure each theme has a clear, distinct conceptual focus
-- **Scope Definition:** Clearly define what is included and excluded from each theme
-- **Citation Rigor:** Provide at least 2 supporting quotes with proper Harvard-style citations
-- **Theoretical Grounding:** Connect themes to relevant theoretical frameworks
-- **Research Implications:** Highlight how each theme contributes to the research domain
-
-**Output Format:**
-For each theme, provide:
-1. Refined theme name (evocative and precise)
-2. Precise academic definition
-3. Scope boundaries (what's included/excluded)
-4. At least 2 supporting academic quotes with citations
-5. Key concepts within the theme
-6. Theoretical framework connections
-7. Research implications
-
-**Research Domain:** {research_domain}
-
-**Based on the following themes, perform refinement:**
-
-{themes_data}
-
-Please provide structured theme refinement results, following the guidelines above."""
-        
-        return prompt
+        return ThemeRefinerPrompts.build_refinement_prompt(
+            themes=themes,
+            research_domain=research_domain,
+            supervisor_feedback=supervisor_feedback,
+            previous_attempts=previous_attempts,
+            attempt_number=attempt_number,
+            max_attempts=max_attempts
+        )
 
     def _parse_refinement_response(self, response: str, themes: List[Dict[str, Any]]) -> List[RefinedTheme]:
         """
@@ -275,7 +240,8 @@ Please provide structured theme refinement results, following the guidelines abo
             "themes_with_implications": len([t for t in refined_themes if t.research_implications])
         }
 
-    async def run(self, themes: List[Dict[str, Any]], research_domain: str = "General") -> Dict[str, Any]:
+    async def run(self, themes: List[Dict[str, Any]], research_domain: str = "General",
+                 supervisor_feedback=None, previous_attempts=None, attempt_number=1, max_attempts=3) -> Dict[str, Any]:
         """
         Main entry point for theme refinement.
         Args:
@@ -293,7 +259,7 @@ Please provide structured theme refinement results, following the guidelines abo
         try:
             # Step 1: Build refinement prompt
             print(f"[DEBUG] Step 1: Building refinement prompt...")
-            prompt = self._build_refinement_prompt(themes, research_domain)
+            prompt = self._build_refinement_prompt(themes, research_domain, supervisor_feedback, previous_attempts, attempt_number, max_attempts)
             print(f"[DEBUG] Generated prompt length: {len(prompt)} characters")
             
             if not self.llm_backend:

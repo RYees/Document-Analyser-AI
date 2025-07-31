@@ -17,76 +17,21 @@ class LiteratureReviewAgent:
         # Initialize with OpenAI backend by default
         self.llm_backend = llm_backend or get_llm_backend("openai")
 
-    def _build_prompt(self, documents: List[Dict[str, Any]], research_domain: str = "General") -> str:
+    def _build_prompt(self, documents: List[Dict[str, Any]], research_domain: str = "General", 
+                     supervisor_feedback=None, previous_attempts=None, attempt_number=1, max_attempts=3) -> str:
         """
         Construct a prompt for the LLM to generate a literature review.
         """
-        content_parts = [
-            f"Research Domain: {research_domain}",
-            f"Number of Papers Analyzed: {len(documents)}",
-            "\n=== PAPERS AND CONTENT ===\n"
-        ]
-        for i, paper in enumerate(documents, 1):
-            authors = paper.get('authors', [])
-            if isinstance(authors, list):
-                author_names = []
-                for author in authors:
-                    if isinstance(author, dict):
-                        author_names.append(author.get('name', str(author)))
-                    else:
-                        author_names.append(str(author))
-                authors_str = ', '.join(author_names)
-            else:
-                authors_str = str(authors)
-            content_parts.extend([
-                f"Paper {i}:",
-                f"Title: {paper.get('title', 'Unknown')}",
-                f"Authors: {authors_str}",
-                f"Year: {paper.get('year', 'Unknown')}",
-                f"Abstract: {paper.get('abstract', 'No abstract available')}",
-                f"Content Length: {len(paper.get('extracted_content', ''))} chars",
-                f"Extracted Content: {paper.get('extracted_content', 'No content extracted')[:2000]}...",
-                "\n" + "="*50 + "\n"
-            ])
+        from api.agents.agent_prompts.literature_review_prompts import LiteratureReviewPrompts
         
-        prompt = f"""You are the Literature Reviewer Agent. Your task is to synthesize and evaluate the key academic publications retrieved by the Data Retrieval Agent to produce a formal **Literature Review** section.
-
-You must compare how different scholars conceptualize transparency across blockchain, Web3, and AI; highlight key debates; identify knowledge gaps; and justify the need for a thematic analysis.
-
-The tone should be academic but casual and spartan. Down to earth. Avoid Jargon. Generously use expressions like: "More often than not", "It can be argued that", "In effect", "Ideally", "We can infer", etc. 
-
----
-
-**Objectives:**
-
-1. Contextual Framing: Situate the topic of transparency within academic debates in the selected domains.
-2. Comparative Synthesis: Compare how authors approach the issue — including areas of agreement, disagreement, and evolution.
-3. Identify Gaps: Point out any theoretical, empirical, or methodological gaps that justify a deeper thematic analysis.
-4. Citations: Include Harvard-style in-text citations.
-5. Deliverable: Output a self-contained Literature Review section to be used in the final report.
-
----
-
-**Use the following format for Harvard-style citations:**
-
-**In-text citation examples:**
-- Narrative: According to Mason (2020), transparency is central to building trust in blockchain ecosystems.
-- Parenthetical: Transparency is often linked to user empowerment in decentralized systems (O'Reilly, 2019).
-
-**Reference List format (used at the end of the paper):**
-- Mason, J. (2020). *The Role of Trust in Blockchain Technology*. Journal of Digital Innovation, 12(3), pp.45–58.
-- O'Reilly, T. (2019). *The Open Future: Transparency in a Decentralized Internet*. Web3 Journal, 7(1), pp.12–29.
-
-Ensure that all in-text citations match entries that would be added to the reference list.
-
----
-
-**Based on the following academic papers and their content, generate a comprehensive literature review:**
-
-{chr(10).join(content_parts)}
-
-Please provide a structured literature review that addresses the objectives above, using the specified tone and citation format."""
-        return prompt
+        return LiteratureReviewPrompts.build_literature_review_prompt(
+            documents=documents,
+            research_domain=research_domain,
+            supervisor_feedback=supervisor_feedback,
+            previous_attempts=previous_attempts,
+            attempt_number=attempt_number,
+            max_attempts=max_attempts
+        )
 
     def _parse_response(self, response: str) -> Dict[str, Any]:
         """
@@ -167,7 +112,8 @@ Please provide a structured literature review that addresses the objectives abov
         
         return points[:5]  # Limit to top 5 points
 
-    async def run(self, documents: List[Dict[str, Any]], research_domain: str = "General") -> Dict[str, Any]:
+    async def run(self, documents: List[Dict[str, Any]], research_domain: str = "General", 
+                 supervisor_feedback=None, previous_attempts=None, attempt_number=1, max_attempts=3) -> Dict[str, Any]:
         """
         Main entry point for literature review generation.
         Args:
@@ -182,7 +128,7 @@ Please provide a structured literature review that addresses the objectives abov
         print(f"[DEBUG] LiteratureReviewAgent.run called with {len(documents)} documents")
         print(f"[DEBUG] Research domain: {research_domain}")
         
-        prompt = self._build_prompt(documents, research_domain)
+        prompt = self._build_prompt(documents, research_domain, supervisor_feedback, previous_attempts, attempt_number, max_attempts)
         print(f"[DEBUG] Generated prompt length: {len(prompt)} characters")
         
         if not self.llm_backend:

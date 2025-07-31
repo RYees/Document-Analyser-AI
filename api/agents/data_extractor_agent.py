@@ -20,7 +20,7 @@ class DataExtractorAgent:
         # Initialize any API clients, vector store managers, etc.
         pass
 
-    async def fetch_papers(self, query: str, max_results: int = 20, year_from: int = 2020, year_to: int = 2024) -> List[Dict[str, Any]]:
+    async def fetch_papers(self, query: str, max_results: int = None, year_from: int = None, year_to: int = None) -> List[Dict[str, Any]]:
         """
         Fetch academic papers and metadata from CORE API.
         """
@@ -40,10 +40,10 @@ class DataExtractorAgent:
         }
         payload = {
             "q": query,
-            "limit": max_results,
+            "limit": max_results or 20,
             "scroll": False,
-            "year_from": year_from,
-            "year_to": year_to,
+            "year_from": year_from or 2020,
+            "year_to": year_to or 2024,
             "fields": ["title", "authors", "abstract", "year", "doi", "downloadUrl", "citations", "language"]
         }
         
@@ -272,7 +272,7 @@ class DataExtractorAgent:
                 "error": "No content chunks to store"
             }
 
-    async def run(self, query: str, max_results: int = 20, year_from: int = 2020, year_to: int = 2024, research_domain: str = "General") -> Dict[str, Any]:
+    async def run(self, query: str, max_results: int = None, year_from: int = None, year_to: int = None, research_domain: str = None) -> Dict[str, Any]:
         """
         Main entry point for data extraction pipeline.
         1. Fetch papers
@@ -283,11 +283,13 @@ class DataExtractorAgent:
         print(f"[DEBUG] ===== Starting DataExtractorAgent.run =====")
         print(f"[DEBUG] Query: {query}")
         print(f"[DEBUG] Max results: {max_results}")
+        print(f"[DEBUG] Year from: {year_from}")
+        print(f"[DEBUG] Year to: {year_to}")
         print(f"[DEBUG] Research domain: {research_domain}")
         
         # Step 1: Fetch papers
         print(f"[DEBUG] Step 1: Fetching papers...")
-        papers = await self.fetch_papers(query, max_results, year_from, year_to)
+        papers = await self.fetch_papers(query, max_results or 20, year_from or 2020, year_to or 2024)
         print(f"[DEBUG] Fetched {len(papers)} papers")
         
         # Handle case where no papers were found
@@ -337,7 +339,7 @@ class DataExtractorAgent:
         # Step 3: Store in vector DB
         print(f"[DEBUG] Step 3: Storing in vector database...")
         if extracted_papers:
-            store_result = await self.store_in_vector_db(extracted_papers, research_domain)
+            store_result = await self.store_in_vector_db(extracted_papers, research_domain or "General")
         else:
             print(f"[WARNING] No papers successfully extracted")
             store_result = {

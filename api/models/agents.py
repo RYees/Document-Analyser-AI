@@ -428,7 +428,7 @@ class DataExtractorRequest(BaseModel):
     research_domain: str = "General"
     max_results: int = 20
     year_from: int = 2020
-    year_to: int = 2024
+    year_to: int = 2025
     
     class Config:
         json_schema_extra = {
@@ -437,7 +437,7 @@ class DataExtractorRequest(BaseModel):
                 "research_domain": "Blockchain Governance",
                 "max_results": 15,
                 "year_from": 2020,
-                "year_to": 2024
+                "year_to": 2025
             }
         }
 
@@ -579,19 +579,61 @@ class ReportGenerationRequest(BaseModel):
 
 class SupervisorRequest(BaseModel):
     """Request model for Supervisor Agent."""
-    agent_output: Dict[str, Any]
-    agent_type: str
-    research_domain: str = "General"
+    agent_output: Dict[str, Any] = Field(..., description="Output produced by the agent that needs evaluation")
+    agent_type: str = Field(..., description="Type of agent (e.g., literature_review, data_extractor, etc.)")
+    original_agent_input: Dict[str, Any] = Field(..., description="Original input that was sent to the agent (required for retry)")
+    agent_input: Optional[Dict[str, Any]] = Field(default=None, description="Optional modified input for retry (if not provided, uses original_agent_input)")
     
     class Config:
         json_schema_extra = {
             "example": {
                 "agent_output": {
-                    "success": True,
-                    "data": {"key": "value"},
-                    "timestamp": "2024-01-15T10:30:00Z"
+                    "summary": "Transparency in blockchain technology is important for trust.",
+                    "key_findings": ["Blockchain provides transparency"],
+                    "research_gaps": ["Need more research on privacy"],
+                    "full_literature_review": "A brief overview of blockchain transparency...",
+                    "documents_analyzed": 3,
+                    "research_domain": "Technology"
                 },
                 "agent_type": "literature_review",
-                "research_domain": "Research Domain"
+                "original_agent_input": {
+                    "documents": [
+                        {
+                            "title": "Blockchain Transparency in Financial Services",
+                            "authors": ["Smith, J.", "Johnson, A."],
+                            "abstract": "This paper explores transparency in blockchain...",
+                            "extracted_content": "Blockchain technology provides unprecedented transparency...",
+                            "year": 2023,
+                            "source": "Journal of Financial Technology"
+                        }
+                    ]
+                }
+            }
+        }
+
+
+class RetryAgentRequest(BaseModel):
+    """Request model for Agent Retry with Enhanced Context."""
+    agent_type: str = Field(..., description="Type of agent to retry (e.g., literature_review, data_extractor, etc.)")
+    original_agent_input: Dict[str, Any] = Field(..., description="Original input that was sent to the agent")
+    enhanced_context: str = Field(..., description="Enhanced context from supervisor feedback and user input")
+    user_context: Optional[str] = Field(default=None, description="Additional context provided by the user")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "agent_type": "literature_review",
+                "original_agent_input": {
+                    "documents": [
+                        {
+                            "title": "Blockchain Transparency Study",
+                            "authors": ["Smith, J."],
+                            "extracted_content": "Content for analysis..."
+                        }
+                    ],
+                    "research_domain": "Blockchain Technology"
+                },
+                "enhanced_context": "Focus on transparency mechanisms in blockchain protocol layers. Include detailed analysis of consensus mechanisms and their transparency implications. Provide specific examples and case studies.",
+                "user_context": "I need more detailed analysis of the technical aspects of blockchain transparency."
             }
         } 

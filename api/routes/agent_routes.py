@@ -11,7 +11,7 @@ from typing import List, Optional, Dict, Any
 # Add the parent directory to the path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from fastapi import APIRouter, HTTPException, Query, Path, Body
+from fastapi import APIRouter, HTTPException, Query, Path, Body, BackgroundTasks
 from fastapi.responses import JSONResponse
 
 from api.models.requests import AgentRequest
@@ -22,7 +22,7 @@ from api.models.agents import (
     AgentType, AgentStatus,
     DataExtractorRequest, RetrieverRequest, LiteratureReviewRequest,
     InitialCodingRequest, ThematicGroupingRequest, ThemeRefinementRequest,
-    ReportGenerationRequest, SupervisorRequest
+    ReportGenerationRequest, SupervisorRequest, RetryAgentRequest
 )
 from api.services.agent_service import AgentService
 
@@ -35,6 +35,11 @@ from api.agents.thematic_grouping_agent import ThematicGroupingAgent
 from api.agents.theme_refiner_agent import ThemeRefinerAgent
 from api.agents.report_generator_agent import ReportGeneratorAgent
 from api.agents.supervisor_agent import SupervisorAgent
+from api.agents.enhanced_supervisor_agent import EnhancedSupervisorAgent
+from api.services.agent_retry_service import AgentRetryService
+from api.utils.llm_backends import get_llm_backend
+import asyncio
+import traceback
 
 router = APIRouter()
 
@@ -48,6 +53,12 @@ agent_service = AgentService()
             summary="Extract content from documents",
             description="Extract structured content from academic documents using the Data Extractor Agent")
 async def extract_document_content(request: DataExtractorRequest):
+    print(f"🔍 [BACKEND DEBUG] Data extractor request received:")
+    print(f"🔍 [BACKEND DEBUG] query: {request.query}")
+    print(f"🔍 [BACKEND DEBUG] max_results: {request.max_results} (type: {type(request.max_results)})")
+    print(f"🔍 [BACKEND DEBUG] year_from: {request.year_from} (type: {type(request.year_from)})")
+    print(f"🔍 [BACKEND DEBUG] year_to: {request.year_to} (type: {type(request.year_to)})")
+    print(f"🔍 [BACKEND DEBUG] research_domain: {request.research_domain}")
     """
     🗂️ **Data Extractor Agent**: Fetch and extract academic papers from external sources.
     
@@ -515,40 +526,58 @@ async def check_agent_quality(request: SupervisorRequest):
         print(f"\n🔍 ===== SUPERVISOR AGENT ENDPOINT =====")
         print(f"🔍 Request received at: {datetime.now()}")
         print(f"🔍 Agent type to supervise: {request.agent_type}")
-        print(f"🔍 Research domain: {request.research_domain}")
+        print(f"🔍 Research domain: {request.agent_output.get('research_domain', 'Not specified')}")
+        print(f"🔍 [SUPERVISOR DEBUG] Original agent input received:")
+        print(f"🔍 [SUPERVISOR DEBUG] Type: {type(request.original_agent_input)}")
+        print(f"🔍 [SUPERVISOR DEBUG] Value: {request.original_agent_input}")
+        if request.original_agent_input:
+            if isinstance(request.original_agent_input, dict):
+                print(f"🔍 [SUPERVISOR DEBUG] Keys: {list(request.original_agent_input.keys())}")
+                # Check if it's a nested structure
+                if 'original_agent_input' in request.original_agent_input:
+                    nested_input = request.original_agent_input['original_agent_input']
+                    print(f"🔍 [SUPERVISOR DEBUG] Found nested original_agent_input: {nested_input}")
+                    print(f"🔍 [SUPERVISOR DEBUG] max_results: {nested_input.get('max_results')}")
+                    print(f"🔍 [SUPERVISOR DEBUG] year_from: {nested_input.get('year_from')}")
+                    print(f"🔍 [SUPERVISOR DEBUG] year_to: {nested_input.get('year_to')}")
+                else:
+                    print(f"🔍 [SUPERVISOR DEBUG] max_results: {request.original_agent_input.get('max_results')}")
+                    print(f"🔍 [SUPERVISOR DEBUG] year_from: {request.original_agent_input.get('year_from')}")
+                    print(f"🔍 [SUPERVISOR DEBUG] year_to: {request.original_agent_input.get('year_to')}")
+            else:
+                print(f"🔍 [SUPERVISOR DEBUG] WARNING: original_agent_input is not a dictionary!")
+        else:
+            print(f"🔍 [SUPERVISOR DEBUG] WARNING: original_agent_input is None or empty!")
         
-        # Initialize agent
-        supervisor_agent = SupervisorAgent()
+        # Initialize enhanced supervisor agent
+        from api.agents.enhanced_supervisor_agent import EnhancedSupervisorAgent
+        supervisor_agent = EnhancedSupervisorAgent()
         
-        # Run quality check
-        result = await supervisor_agent.check_quality(
+        # Run enhanced evaluation and retry
+        result = await supervisor_agent.evaluate_quality(
             agent_output=request.agent_output,
             agent_type=request.agent_type,
-            research_domain=request.research_domain
+            agent_input=request.agent_input if hasattr(request, 'agent_input') else {},
+            original_agent_input=request.original_agent_input
         )
         
-        if not result:
-            print(f"🔍 ❌ Quality check failed: No result returned")
-            raise HTTPException(
-                status_code=400,
-                detail=f"Quality check failed: No result returned"
-            )
-        
-        print(f"🔍 ✅ Quality check completed successfully!")
-        print(f"🔍 Status: {result.status}")
-        print(f"🔍 Quality score: {result.quality_score}")
-        print(f"🔍 Confidence: {result.confidence}")
+        print(f"🔍 ✅ Enhanced supervisor evaluation completed!")
+        print(f"🔍 Final status: {result.final_status}")
+        print(f"🔍 Retry attempts: {result.retry_attempts}")
+        print(f"🔍 Initial assessment: {result.initial_assessment.status}")
+        print(f"🔍 Retry output type: {type(result.retry_output)}")
+        print(f"🔍 Final assessment type: {type(result.final_assessment)}")
         
         response = AgentResponse(
             success=True,
             agent_type="supervisor",
             data={
-                "status": result.status,
-                "feedback": result.feedback,
-                "action": result.action,
-                "confidence": result.confidence,
-                "issues_found": result.issues_found,
-                "quality_score": result.quality_score
+                "initial_assessment": result.initial_assessment.__dict__,
+                "final_status": result.final_status,
+                "final_message": result.final_message,
+                "retry_attempts": result.retry_attempts,
+                "retry_output": result.retry_output,
+                "final_assessment": result.final_assessment.__dict__ if result.final_assessment else None
             },
             timestamp=datetime.now(timezone.utc).isoformat()
         )
@@ -562,6 +591,89 @@ async def check_agent_quality(request: SupervisorRequest):
         raise HTTPException(
             status_code=500,
             detail=f"Quality check failed: {str(e)}"
+        )
+
+
+@router.post("/retry-agent",
+            response_model=AgentResponse,
+            summary="Retry agent with enhanced context",
+            description="Retry an agent with enhanced context from supervisor feedback and user input")
+async def retry_agent_with_context(request: RetryAgentRequest):
+    """
+    🔄 **Agent Retry with Enhanced Context**: Retry an agent with improved context.
+    
+    **What it does:**
+    - Takes supervisor feedback and user context
+    - Retries the specified agent with enhanced instructions
+    - Returns improved agent output
+    
+    **Use cases:**
+    - Improving agent output based on supervisor assessment
+    - Human-in-the-loop refinement of agent results
+    - Iterative improvement of research outputs
+    """
+    try:
+        print(f"\n🔄 ===== AGENT RETRY ENDPOINT =====")
+        print(f"🔄 Request received at: {datetime.now()}")
+        print(f"🔄 Agent type: {request.agent_type}")
+        print(f"🔄 Enhanced context: {request.enhanced_context[:100]}...")
+        print(f"🔄 User context: {request.user_context[:100] if request.user_context else 'None'}...")
+        print(f"🔄 [RETRY DEBUG] Original agent input received:")
+        print(f"🔄 [RETRY DEBUG] {request.original_agent_input}")
+        if request.original_agent_input:
+            print(f"🔄 [RETRY DEBUG] max_results: {request.original_agent_input.get('max_results')}")
+            print(f"🔄 [RETRY DEBUG] year_from: {request.original_agent_input.get('year_from')}")
+            print(f"🔄 [RETRY DEBUG] year_to: {request.original_agent_input.get('year_to')}")
+        
+        # Initialize retry service
+        retry_service = AgentRetryService()
+        
+        # Retry the agent with enhanced context
+        result = await retry_service.retry_agent(
+            agent_type=request.agent_type,
+            original_input=request.original_agent_input,
+            enhanced_context=request.enhanced_context,
+            user_context=request.user_context
+        )
+        
+        print(f"[DEBUG] Retry result type: {type(result)}")
+        print(f"[DEBUG] Retry result: {result}")
+        
+        # Check if result is a string (error message) or dict with error
+        if isinstance(result, str):
+            print(f"🔄 ❌ Agent retry failed: {result}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Agent retry failed: {result}"
+            )
+        elif isinstance(result, dict) and "error" in result:
+            print(f"🔄 ❌ Agent retry failed: {result['error']}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Agent retry failed: {result['error']}"
+            )
+        
+        print(f"🔄 ✅ Agent retry completed successfully!")
+        print(f"🔄 Agent type: {request.agent_type}")
+        print(f"🔄 Result keys: {list(result.keys()) if isinstance(result, dict) else 'Not a dict'}")
+        
+        response = AgentResponse(
+            success=True,
+            timestamp=datetime.now(timezone.utc).isoformat(),
+            agent_type=request.agent_type,
+            data=result
+        )
+        
+        print(f"🔄 =======================================")
+        
+        return response
+        
+    except Exception as e:
+        print(f"🔄 ❌ Agent retry failed: {str(e)}")
+        print(f"🔄 Error details: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Agent retry failed: {str(e)}"
         )
 
 @router.post("/execute", response_model=AgentResponse)

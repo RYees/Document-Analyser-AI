@@ -20,7 +20,7 @@ class PipelineRequest(BaseModel):
     research_domain: str = Field(default="General", description="Research domain or field", max_length=100)
     max_results: int = Field(default=20, description="Maximum number of documents to retrieve", ge=1, le=100)
     year_from: int = Field(default=2020, description="Start year for document search", ge=1990, le=2024)
-    year_to: int = Field(default=2024, description="End year for document search", ge=1990, le=2024)
+    year_to: int = Field(default=2024, description="End year for document search", ge=1990, le=2025)
     quality_threshold: float = Field(default=0.6, description="Minimum quality threshold for pipeline steps", ge=0.0, le=1.0)
     pipeline_config: Optional[PipelineConfig] = Field(default=None, description="Optional pipeline configuration")
     

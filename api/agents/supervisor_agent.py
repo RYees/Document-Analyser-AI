@@ -8,6 +8,7 @@ import os
 # Add the api directory to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from api.utils.llm_backends import get_llm_backend
+from api.agents.supervisor_prompts.assessment_templates import AssessmentTemplates
 
 @dataclass
 class QualityAssessment:
@@ -18,6 +19,32 @@ class QualityAssessment:
     confidence: float
     issues_found: List[str]
     quality_score: float
+    
+    # Enhanced assessment fields
+    purpose_alignment_score: float = 0.0
+    relevance_score: float = 0.0
+    completeness_score: float = 0.0
+    strategic_value_score: float = 0.0
+    
+    # Detailed feedback
+    gaps_identified: List[str] = None
+    improvement_suggestions: List[str] = None
+    enhanced_context_prompt: str = ""
+    user_input_improvements: List[str] = None
+    assessment_reasoning: str = ""
+    strengths_identified: List[str] = None
+    next_steps_recommendation: str = ""
+    
+    def __post_init__(self):
+        """Initialize default values for lists"""
+        if self.gaps_identified is None:
+            self.gaps_identified = []
+        if self.improvement_suggestions is None:
+            self.improvement_suggestions = []
+        if self.user_input_improvements is None:
+            self.user_input_improvements = []
+        if self.strengths_identified is None:
+            self.strengths_identified = []
 
 class SupervisorAgent:
     """
@@ -72,51 +99,20 @@ class SupervisorAgent:
         
         return criteria.get(agent_type, {})
 
-    def _build_supervisor_prompt(self, agent_output: Dict[str, Any], agent_type: str, research_domain: str) -> str:
+    def _build_supervisor_prompt(self, agent_output: Dict[str, Any], agent_type: str, research_domain: str, user_query: str = "") -> str:
         """
-        Build the supervisor prompt for quality assessment.
+        Build the supervisor prompt using the new template system.
         """
-        criteria = self._get_quality_criteria(agent_type)
-        
-        # Format agent output for review
-        output_summary = self._format_output_for_review(agent_output, agent_type)
-        
-        prompt = f"""You are a Quality Control Supervisor Agent for an automated academic research pipeline.
-
-**Your Role:** Review each agent's output and decide whether it meets quality standards to proceed to the next step.
-
-**Quality Assessment Framework:**
-For each agent output, evaluate:
-1. COMPLETENESS: Does it contain all required elements?
-2. RELEVANCE: Is it aligned with the research domain?
-3. QUALITY: Does it meet academic standards?
-4. CONSISTENCY: Are there internal contradictions?
-
-**Decision Options:**
-- APPROVE: Output meets all quality standards, proceed to next agent
-- REVISE: Output has issues but can be fixed, provide specific feedback
-- HALT: Output has critical issues, stop pipeline
-
-**Current Agent Output to Review:**
-{output_summary}
-
-**Agent Type:** {agent_type}
-**Research Domain:** {research_domain}
-**Expected Elements:** {criteria.get('required_elements', [])}
-
-**Quality Criteria for {agent_type}:**
-{self._format_criteria_for_prompt(criteria)}
-
-**Your Response Format:**
-Status: [APPROVE/REVISE/HALT]
-Feedback: [List specific issues found, if any]
-Action: [What should be done next]
-Confidence: [0.0-1.0 score for your assessment]
-Quality Score: [0.0-1.0 overall quality score]
-
-**Your Assessment:**
-"""
-        return prompt
+        # Use the new assessment templates
+        return AssessmentTemplates.build_complete_assessment_prompt(
+            agent_output=agent_output,
+            agent_type=agent_type,
+            user_query=user_query,
+            research_domain=research_domain,
+            pipeline_step="",
+            previous_steps=[],
+            learning_context=None
+        )
 
     def _format_output_for_review(self, agent_output: Dict[str, Any], agent_type: str) -> str:
         """
@@ -206,16 +202,33 @@ Report Length: {len(report_content)} characters
 
     def _parse_supervisor_response(self, response: str) -> QualityAssessment:
         """
-        Parse the supervisor's response into structured format.
+        Parse the enhanced supervisor response to extract all assessment details.
         """
-        status = "HALT"  # Default to halt if parsing fails
+        # Default values
+        status = "HALT"
         feedback = []
         action = "Stop pipeline due to parsing error"
         confidence = 0.0
         quality_score = 0.0
         issues_found = []
         
+        # Enhanced assessment fields
+        purpose_alignment_score = 0.0
+        relevance_score = 0.0
+        completeness_score = 0.0
+        strategic_value_score = 0.0
+        
+        # Detailed feedback
+        gaps_identified = []
+        improvement_suggestions = []
+        enhanced_context_prompt = ""
+        user_input_improvements = []
+        assessment_reasoning = ""
+        strengths_identified = []
+        next_steps_recommendation = ""
+        
         lines = response.split('\n')
+        current_section = None
         
         for line in lines:
             line = line.strip()
@@ -228,36 +241,100 @@ Report Length: {len(report_content)} characters
                 if status_part in ['APPROVE', 'REVISE', 'HALT']:
                     status = status_part
             
-            # Parse feedback
-            elif line.startswith('Feedback:'):
-                feedback_part = line.split(':', 1)[1].strip()
-                if feedback_part and feedback_part != '[List specific issues found, if any]':
-                    feedback.append(feedback_part)
+            # Parse scores
+            elif line.startswith('Quality Score:'):
+                try:
+                    score = line.split(':', 1)[1].strip()
+                    quality_score = float(score)
+                except:
+                    quality_score = 0.0
             
-            # Parse action
-            elif line.startswith('Action:'):
-                action_part = line.split(':', 1)[1].strip()
-                if action_part and action_part != '[What should be done next]':
-                    action = action_part
+            elif line.startswith('Purpose Alignment Score:'):
+                try:
+                    score = line.split(':', 1)[1].strip()
+                    purpose_alignment_score = float(score)
+                except:
+                    purpose_alignment_score = 0.0
             
-            # Parse confidence
+            elif line.startswith('Relevance Score:'):
+                try:
+                    score = line.split(':', 1)[1].strip()
+                    relevance_score = float(score)
+                except:
+                    relevance_score = 0.0
+            
+            elif line.startswith('Completeness Score:'):
+                try:
+                    score = line.split(':', 1)[1].strip()
+                    completeness_score = float(score)
+                except:
+                    completeness_score = 0.0
+            
+            elif line.startswith('Strategic Value Score:'):
+                try:
+                    score = line.split(':', 1)[1].strip()
+                    strategic_value_score = float(score)
+                except:
+                    strategic_value_score = 0.0
+            
             elif line.startswith('Confidence:'):
                 try:
-                    conf_part = line.split(':', 1)[1].strip()
-                    confidence = float(conf_part)
+                    conf = line.split(':', 1)[1].strip()
+                    confidence = float(conf)
                 except:
                     confidence = 0.0
             
-            # Parse quality score
-            elif line.startswith('Quality Score:'):
-                try:
-                    score_part = line.split(':', 1)[1].strip()
-                    quality_score = float(score_part)
-                except:
-                    quality_score = 0.0
+            # Parse sections
+            elif line == 'Gaps Identified:':
+                current_section = 'gaps'
+            elif line == 'Improvement Suggestions:':
+                current_section = 'improvements'
+            elif line == 'Enhanced Context Prompt:':
+                current_section = 'context'
+            elif line == 'User Input Improvements:':
+                current_section = 'user_input'
+            elif line == 'Assessment Reasoning:':
+                current_section = 'reasoning'
+            elif line == 'Issues Found:':
+                current_section = 'issues'
+            elif line == 'Strengths Identified:':
+                current_section = 'strengths'
+            elif line == 'Next Steps Recommendation:':
+                current_section = 'next_steps'
+            
+            # Parse content based on current section
+            elif line.startswith('- ') and current_section:
+                content = line[2:].strip()
+                if current_section == 'gaps':
+                    gaps_identified.append(content)
+                elif current_section == 'improvements':
+                    improvement_suggestions.append(content)
+                elif current_section == 'user_input':
+                    user_input_improvements.append(content)
+                elif current_section == 'issues':
+                    issues_found.append(content)
+                elif current_section == 'strengths':
+                    strengths_identified.append(content)
+            
+            elif current_section == 'context' and line:
+                enhanced_context_prompt += line + "\n"
+            
+            elif current_section == 'reasoning' and line:
+                assessment_reasoning += line + "\n"
+            
+            elif current_section == 'next_steps' and line:
+                next_steps_recommendation += line + "\n"
         
-        # Extract issues from feedback
-        issues_found = feedback.copy()
+        # Set action based on status
+        if status == "APPROVE":
+            action = "Proceed to next step"
+        elif status == "REVISE":
+            action = "Retry with improvements"
+        else:
+            action = "Stop pipeline due to critical issues"
+        
+        # Set feedback based on issues found
+        feedback = issues_found.copy()
         
         return QualityAssessment(
             status=status,
@@ -265,16 +342,28 @@ Report Length: {len(report_content)} characters
             action=action,
             confidence=confidence,
             issues_found=issues_found,
-            quality_score=quality_score
+            quality_score=quality_score,
+            purpose_alignment_score=purpose_alignment_score,
+            relevance_score=relevance_score,
+            completeness_score=completeness_score,
+            strategic_value_score=strategic_value_score,
+            gaps_identified=gaps_identified,
+            improvement_suggestions=improvement_suggestions,
+            enhanced_context_prompt=enhanced_context_prompt.strip(),
+            user_input_improvements=user_input_improvements,
+            assessment_reasoning=assessment_reasoning.strip(),
+            strengths_identified=strengths_identified,
+            next_steps_recommendation=next_steps_recommendation.strip()
         )
 
-    async def check_quality(self, agent_output: Dict[str, Any], agent_type: str, research_domain: str = "General") -> QualityAssessment:
+    async def check_quality(self, agent_output: Dict[str, Any], agent_type: str, research_domain: str = "General", user_query: str = "") -> QualityAssessment:
         """
         Check the quality of an agent's output.
         Args:
             agent_output: The output from the agent to check
             agent_type: Type of agent (literature_review, initial_coding, etc.)
             research_domain: The research domain being studied
+            user_query: The original user query for context
         Returns:
             QualityAssessment: The quality assessment result
         """
@@ -295,7 +384,7 @@ Report Length: {len(report_content)} characters
                 )
             
             # Build supervisor prompt
-            prompt = self._build_supervisor_prompt(agent_output, agent_type, research_domain)
+            prompt = self._build_supervisor_prompt(agent_output, agent_type, research_domain, user_query)
             print(f"[DEBUG] Generated supervisor prompt length: {len(prompt)} characters")
             
             if not self.llm_backend:

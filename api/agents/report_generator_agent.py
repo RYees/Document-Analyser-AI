@@ -85,56 +85,19 @@ class ReportGeneratorAgent:
         
         return "\n".join(sections_data)
 
-    def _build_report_prompt(self, sections: Dict[str, Any]) -> str:
+    def _build_report_prompt(self, sections: Dict[str, Any], supervisor_feedback=None, previous_attempts=None, attempt_number=1, max_attempts=3) -> str:
         """
         Construct a prompt for the LLM to generate the complete academic report.
         """
-        sections_data = self._prepare_sections_data(sections)
-        research_domain = sections.get("research_domain", "General")
+        from api.agents.agent_prompts.report_generator_prompts import ReportGeneratorPrompts
         
-        prompt = f"""As the Report Generation Agent, your task is to compile a polished, academic-style **Thematic Literature Review** report. Use the outputs from all other agents to create a well-structured research paper that includes Harvard-style in-text citations and a properly formatted reference list.
-
-Your output must integrate a standalone **Literature Review section**, situated after the Introduction and before the Methodology. This section should summarize and critique key academic sources, providing the theoretical and conceptual context for the thematic analysis.
-
-Maintain an academic yet conversational tone. Use transitional phrases such as: "Furthermore", "Ideally", "We can infer", "It is to say that", and "In effect" to enhance clarity, scholarly tone, and readability.
-The tone should be academic but casual and spartan. Down to earth. Avoid Jargon. Generously use expressions like: "More often than not", "It can be argued that", "In effect", "Ideally", "We can infer", etc.  Equally use expressions like "Generally speaking," or "We can infer that..." when introducing insights, while remaining faithful to the literature.
-
----
-
-**Required Report Structure:**
-
-1. **Abstract** *(optional but encouraged)*  
-2. **Introduction**: Set the stage for why transparency in blockchain, Web3, and AI is significant.  
-3. **Literature Review**: Summarize and synthesize academic perspectives, highlight debates and gaps.  
-4. **Methodology**: Describe the thematic analysis process used to derive themes. Avoid referring to agents by name.  
-5. **Findings**: Present clearly defined and titled themes with subheadings, definitions, scope, and citations.  
-6. **Discussion**: Unpack tensions, synthesize implications, and reflect on cross-thematic relationships.  
-7. **Conclusion**: Summarize main contributions and outline possible future research directions.  
-8. **Reference List**: Generate a complete, properly formatted Harvard-style bibliography.
-
----
-
-**Objectives:**
-
-1. **Structured Composition**: Follow academic conventions and include the new Literature Review section.
-2. **Theme Integration**: Coherently integrate refined thematic findings into the broader narrative.
-3. **Literature Contextualization**: Connect themes back to the scholarly literature reviewed earlier.
-4. **Methodological Transparency**: Clearly explain the thematic analysis steps without naming individual agents.
-5. **Harvard Referencing**: Use consistent Harvard-style in-text citations and generate a reference list.
-6. **Clarity & Coherence**: Ensure all sections flow logically and read like a single, cohesive academic paper.
-7. **Data Storage**: The report will be automatically saved to a local file for future reference.
-
----
-
-**Research Domain:** {research_domain}
-
-**Based on the following agent outputs, generate a complete academic report:**
-
-{sections_data}
-
-Please provide a complete, structured academic report following the required format and objectives above."""
-        
-        return prompt
+        return ReportGeneratorPrompts.build_report_prompt(
+            sections=sections,
+            supervisor_feedback=supervisor_feedback,
+            previous_attempts=previous_attempts,
+            attempt_number=attempt_number,
+            max_attempts=max_attempts
+        )
 
     def _extract_references_from_text(self, text: str) -> List[Dict[str, str]]:
         """
@@ -310,7 +273,7 @@ Please provide a complete, structured academic report following the required for
             "generated_at": datetime.now(timezone.utc).isoformat()
         }
 
-    async def run(self, sections: Dict[str, Any]) -> Dict[str, Any]:
+    async def run(self, sections: Dict[str, Any], supervisor_feedback=None, previous_attempts=None, attempt_number=1, max_attempts=3) -> Dict[str, Any]:
         """
         Main entry point for report generation.
         Args:
@@ -326,7 +289,7 @@ Please provide a complete, structured academic report following the required for
         try:
             # Step 1: Build report generation prompt
             print(f"[DEBUG] Step 1: Building report generation prompt...")
-            prompt = self._build_report_prompt(sections)
+            prompt = self._build_report_prompt(sections, supervisor_feedback, previous_attempts, attempt_number, max_attempts)
             print(f"[DEBUG] Generated prompt length: {len(prompt)} characters")
             
             if not self.llm_backend:

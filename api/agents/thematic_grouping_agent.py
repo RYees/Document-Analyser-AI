@@ -83,70 +83,21 @@ class ThematicGroupingAgent:
         print(f"[DEBUG] Prepared {len(codes)} unique codes for thematic analysis")
         return codes
 
-    def _build_thematic_prompt(self, codes: List[Code], research_domain: str = "General") -> str:
+    def _build_thematic_prompt(self, codes: List[Code], research_domain: str = "General",
+                              supervisor_feedback=None, previous_attempts=None, attempt_number=1, max_attempts=3) -> str:
         """
         Construct a prompt for the LLM to perform thematic grouping.
         """
-        code_parts = [
-            f"Research Domain: {research_domain}",
-            f"Number of Unique Codes to Analyze: {len(codes)}",
-            "\n=== CODES FOR THEMATIC ANALYSIS ===\n"
-        ]
+        from api.agents.agent_prompts.thematic_grouping_prompts import ThematicGroupingPrompts
         
-        # Sort codes by frequency for better analysis
-        sorted_codes = sorted(codes, key=lambda x: x.frequency, reverse=True)
-        
-        for i, code in enumerate(sorted_codes, 1):
-            citations_str = ', '.join(code.source_citations) if code.source_citations else 'No citations'
-            code_parts.extend([
-                f"Code {i}: {code.name}",
-                f"   Definition: {code.definition}",
-                f"   Category: {code.category}",
-                f"   Frequency: {code.frequency}",
-                f"   Confidence: {code.confidence}",
-                f"   Citations: {citations_str}",
-                "\n" + "-"*40 + "\n"
-            ])
-        
-        prompt = f"""As the Thematic Grouping Agent, your role is to synthesize the initial codes and identify conceptual patterns. You will propose broad academic themes and justify how the codes cluster meaningfully.
-
-The tone should be academic but casual and spartan. Down to earth. Avoid Jargon. Generously use expressions like: "More often than not", "It can be argued that", "In effect", "Ideally", "We can infer", etc.  Equally use expressions like "Generally speaking," or "We can infer that..." when introducing insights, while remaining faithful to the literature.
-
----
-
-**Objectives:**
-
-1. **Code Pattern Recognition:** Analyze codes to detect cross-cutting motifs and patterns.
-2. **Theme Proposal:** Generate preliminary themes that capture conceptual relationships between codes.
-3. **Justification:** Clearly explain why certain codes were grouped under a specific theme.
-4. **Scholarly Framing:** Support each theme with illustrative quotes using language that reflects academic reasoning and includes citation signals.
-
----
-
-**Thematic Analysis Guidelines:**
-
-- **Identify Conceptual Relationships:** Look for codes that share underlying concepts, theoretical frameworks, or practical applications.
-- **Create Meaningful Clusters:** Group codes that, when combined, represent a coherent academic theme or research area.
-- **Justify Groupings:** Provide clear academic reasoning for why codes belong together, referencing the original definitions and contexts.
-- **Highlight Cross-Cutting Ideas:** Identify concepts that appear across multiple themes or that bridge different thematic areas.
-- **Maintain Academic Rigor:** Use appropriate citation signals and academic language while keeping the tone accessible.
-
-**Output Format:**
-For each theme, provide:
-1. Theme name (descriptive and academic)
-2. Theme description (what it encompasses)
-3. Codes included in the theme
-4. Justification for the grouping
-5. Illustrative quotes or examples
-6. Cross-cutting ideas or connections to other themes
-
-**Based on the following codes, perform thematic grouping:**
-
-{chr(10).join(code_parts)}
-
-Please provide structured thematic analysis results, following the guidelines above."""
-        
-        return prompt
+        return ThematicGroupingPrompts.build_thematic_prompt(
+            codes=codes,
+            research_domain=research_domain,
+            supervisor_feedback=supervisor_feedback,
+            previous_attempts=previous_attempts,
+            attempt_number=attempt_number,
+            max_attempts=max_attempts
+        )
 
     def _parse_thematic_response(self, response: str, codes: List[Code]) -> List[Theme]:
         """
@@ -337,7 +288,8 @@ Please provide structured thematic analysis results, following the guidelines ab
             "average_codes_per_theme": total_codes_analyzed / len(themes) if themes else 0
         }
 
-    async def run(self, coded_units: List[Dict[str, Any]], research_domain: str = "General") -> Dict[str, Any]:
+    async def run(self, coded_units: List[Dict[str, Any]], research_domain: str = "General",
+                 supervisor_feedback=None, previous_attempts=None, attempt_number=1, max_attempts=3) -> Dict[str, Any]:
         """
         Main entry point for thematic grouping.
         Args:
@@ -362,7 +314,7 @@ Please provide structured thematic analysis results, following the guidelines ab
             
             # Step 2: Build thematic analysis prompt
             print(f"[DEBUG] Step 2: Building thematic analysis prompt...")
-            prompt = self._build_thematic_prompt(codes, research_domain)
+            prompt = self._build_thematic_prompt(codes, research_domain, supervisor_feedback, previous_attempts, attempt_number, max_attempts)
             print(f"[DEBUG] Generated prompt length: {len(prompt)} characters")
             
             if not self.llm_backend:

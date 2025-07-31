@@ -27,6 +27,7 @@ from api.routes import (
     report_routes
 )
 
+
 # Global variables for application state
 app_state = {
     "startup_time": None,
@@ -231,6 +232,10 @@ app.include_router(
     prefix="/api/v1/reports",
     tags=["Reports"]
 )
+
+
+
+
 
 if __name__ == "__main__":
     uvicorn.run(
