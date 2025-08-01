@@ -172,14 +172,42 @@ class WeaviateManager:
         try:
             logger.info("Listing all collections")
             
+            # Use REST API as primary method since Python client's list_all() is unreliable
+            try:
+                import requests
+                full_url = f"https://{self.url}/v1/schema"
+                response = requests.get(full_url, headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json"
+                })
+                if response.status_code == 200:
+                    schema_data = response.json()
+                    if 'classes' in schema_data:
+                        collection_names = [cls['class'] for cls in schema_data['classes']]
+                        print(f"[DEBUG] Found collections via REST API: {collection_names}")
+                        logger.info(f"✅ Found {len(collection_names)} collections via REST API")
+                        return collection_names
+                    else:
+                        print(f"[DEBUG] No 'classes' in REST API response: {schema_data}")
+                else:
+                    print(f"[DEBUG] REST API failed with status {response.status_code}: {response.text}")
+            except Exception as rest_error:
+                print(f"[DEBUG] REST API method failed: {rest_error}")
+            
+            # Fallback to Python client method (though it's unreliable)
+            print("[DEBUG] Falling back to Python client method...")
             collections = self.client.collections.list_all()
+            print(f"[DEBUG] Raw collections from list_all(): {collections}")
+            print(f"[DEBUG] Type of collections: {type(collections)}")
+            
             # Handle both string and object responses
             if collections and hasattr(collections[0], 'name'):
                 collection_names = [col.name for col in collections]
             else:
                 collection_names = list(collections) if isinstance(collections, (list, tuple)) else []
             
-            logger.info(f"✅ Found {len(collection_names)} collections")
+            print(f"[DEBUG] Processed collection names: {collection_names}")
+            logger.info(f"✅ Found {len(collection_names)} collections via Python client")
             return collection_names
             
         except Exception as e:
@@ -489,17 +517,21 @@ class WeaviateManager:
                 "include_vector": include_vector
             }
             
-            if filters:
-                search_params["where"] = filters
-            
             if return_metadata:
                 search_params["return_metadata"] = MetadataQuery(distance=True, certainty=True)
             
-            # Perform search
-            response = collection.query.near_text(
-                query=query,
-                **search_params
-            )
+            # Perform search with filters if provided
+            if filters:
+                response = collection.query.near_text(
+                    query=query,
+                    where=filters,
+                    **search_params
+                )
+            else:
+                response = collection.query.near_text(
+                    query=query,
+                    **search_params
+                )
             
             results = []
             for obj in response.objects:

@@ -25,29 +25,20 @@ router = APIRouter()
 # Initialize data service
 data_service = DataService()
 
-@router.post("/retrieve", response_model=DataResponse)
-async def retrieve_documents(request: DataRequest):
+@router.get("/retrieve/{collection_name}", response_model=DataResponse)
+async def retrieve_all_documents(
+    collection_name: str = Path(..., description="Name of the collection to retrieve all documents from")
+):
     """
-    Retrieve documents from the vector database based on a query.
+    Retrieve all documents from a specific collection.
     
-    This endpoint searches the vector database for relevant documents:
-    - Performs semantic search using the provided query
-    - Returns documents with relevance scores
-    - Supports filtering by research domain
-    - Limits results based on max_results parameter
+    This endpoint returns all documents stored in the specified collection:
+    - Returns all documents without filtering
+    - No query or search parameters needed
+    - Returns complete document content and metadata
     """
     try:
-        if not request.query:
-            raise HTTPException(
-                status_code=400,
-                detail="Query is required for document retrieval"
-            )
-        
-        result = await data_service.retrieve_documents(
-            query=request.query,
-            research_domain=request.research_domain,
-            max_results=request.max_results
-        )
+        result = await data_service.retrieve_all_documents(collection_name)
         
         if not result["success"]:
             raise HTTPException(
@@ -257,8 +248,7 @@ async def delete_documents(request: DataRequest):
 
 @router.get("/statistics", response_model=DataStatisticsResponse)
 async def get_data_statistics(
-    collection_name: Optional[str] = Query(None, description="Filter by collection name"),
-    research_domain: Optional[str] = Query(None, description="Filter by research domain")
+    collection_name: Optional[str] = Query(None, description="Filter by collection name")
 ):
     """
     Get comprehensive data statistics.
@@ -271,8 +261,7 @@ async def get_data_statistics(
     """
     try:
         result = data_service.get_data_statistics(
-            collection_name=collection_name,
-            research_domain=research_domain
+            collection_name=collection_name
         )
         
         if not result["success"]:
@@ -295,162 +284,3 @@ async def get_data_statistics(
             detail=f"Failed to get data statistics: {str(e)}"
         )
 
-@router.get("/operations/history", response_model=DataResponse)
-async def get_operation_history(
-    limit: int = Query(20, ge=1, le=100, description="Number of operations to return"),
-    operation_type: Optional[str] = Query(None, description="Filter by operation type")
-):
-    """
-    Get history of data operations.
-    
-    Returns a history of recent data operations including:
-    - Document retrievals and storage
-    - Collection management operations
-    - Performance metrics
-    - Error logs
-    """
-    try:
-        result = data_service.get_operation_history(
-            limit=limit,
-            operation_type=operation_type
-        )
-        
-        if not result["success"]:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to get operation history: {result.get('error', 'Unknown error')}"
-            )
-        
-        response = DataResponse(
-            success=True,
-            data=result["data"],
-            timestamp=datetime.now(timezone.utc).isoformat()
-        )
-        
-        return response
-        
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to get operation history: {str(e)}"
-        )
-
-@router.post("/search/similar", response_model=DataResponse)
-async def find_similar_documents(
-    request: DataRequest,
-    similarity_threshold: float = Query(0.7, ge=0.0, le=1.0, description="Minimum similarity threshold")
-):
-    """
-    Find documents similar to a given document or query.
-    
-    Performs similarity search to find documents that are semantically similar:
-    - Uses vector similarity calculations
-    - Supports both document content and query-based search
-    - Configurable similarity threshold
-    - Returns similarity scores
-    """
-    try:
-        if not request.query and not request.documents:
-            raise HTTPException(
-                status_code=400,
-                detail="Either query or document content is required for similarity search"
-            )
-        
-        result = await data_service.find_similar_documents(
-            query=request.query,
-            documents=request.documents,
-            research_domain=request.research_domain,
-            max_results=request.max_results,
-            similarity_threshold=similarity_threshold
-        )
-        
-        if not result["success"]:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Similarity search failed: {result.get('error', 'Unknown error')}"
-            )
-        
-        response = DataResponse(
-            success=True,
-            data=result["data"],
-            operation_id=result.get("operation_id"),
-            timestamp=datetime.now(timezone.utc).isoformat()
-        )
-        
-        return response
-        
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Similarity search failed: {str(e)}"
-        )
-
-@router.post("/index/rebuild")
-async def rebuild_index(
-    collection_name: str = Query(..., description="Name of the collection to rebuild"),
-    force: bool = Query(False, description="Force rebuild even if index exists")
-):
-    """
-    Rebuild the vector index for a collection.
-    
-    This operation recreates the vector index for better search performance:
-    - Recalculates all embeddings
-    - Optimizes index structure
-    - Improves search speed and accuracy
-    - Can be time-consuming for large collections
-    """
-    try:
-        result = await data_service.rebuild_index(collection_name, force)
-        
-        if not result["success"]:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Index rebuild failed: {result.get('error', 'Unknown error')}"
-            )
-        
-        return {
-            "success": True,
-            "message": f"Index for collection {collection_name} rebuilt successfully",
-            "data": result["data"],
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
-        
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Index rebuild failed: {str(e)}"
-        )
-
-@router.get("/health", response_model=DataResponse)
-async def get_data_service_health():
-    """
-    Get the health status of the data service.
-    
-    Returns health information including:
-    - Vector database connectivity
-    - Service status and uptime
-    - Performance metrics
-    - Error rates
-    """
-    try:
-        result = data_service.get_health_status()
-        
-        if not result["success"]:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Data service health check failed: {result.get('error', 'Unknown error')}"
-            )
-        
-        response = DataResponse(
-            success=True,
-            data=result["data"],
-            timestamp=datetime.now(timezone.utc).isoformat()
-        )
-        
-        return response
-        
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Data service health check failed: {str(e)}"
-        ) 

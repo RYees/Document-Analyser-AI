@@ -253,7 +253,7 @@ class SmartRetrievalService:
             
             # Step 1: Initial vector store search
             print(f"[DEBUG] Step 1: Initial vector store search...")
-            initial_results = self.vector_store_manager.similarity_search(query, max_results)
+            initial_results = self.vector_store_manager.similarity_search(query, max_results, research_domain)
             print(f"[DEBUG] Initial search returned {len(initial_results)} results")
             
             # Step 2: Evaluate quality
@@ -286,7 +286,7 @@ class SmartRetrievalService:
                     print(f"[DEBUG] Extraction successful, re-querying vector store...")
                     
                     # Re-query vector store with higher limit to get mix of old + new
-                    fresh_results = self.vector_store_manager.similarity_search(query, max_results * 2)
+                    fresh_results = self.vector_store_manager.similarity_search(query, max_results * 2, research_domain)
                     print(f"[DEBUG] Fresh search returned {len(fresh_results)} results")
                     
                     # Merge results intelligently

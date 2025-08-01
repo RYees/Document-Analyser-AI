@@ -52,16 +52,29 @@ class PipelineRequest(BaseModel):
 
 class DataRequest(BaseModel):
     """Request model for data operations."""
-    query: str = Field(..., description="Search query", min_length=1, max_length=500)
+    query: Optional[str] = Field(None, description="Search query", min_length=1, max_length=500)
     research_domain: str = Field(default="General", description="Research domain or field", max_length=100)
     max_results: int = Field(default=10, description="Maximum number of results to return", ge=1, le=100)
+    documents: Optional[List[Dict[str, Any]]] = Field(None, description="Documents for storage or similarity search")
+    collection_name: Optional[str] = Field(default="ResearchPaper", description="Collection name for operations")
+    document_ids: Optional[List[str]] = Field(None, description="Document IDs for deletion")
     
     model_config = {
         "json_schema_extra": {
             "example": {
                 "query": "machine learning algorithms",
                 "research_domain": "Computer Science",
-                "max_results": 10
+                "max_results": 10,
+                "documents": [
+                    {
+                        "title": "Sample Document",
+                        "content": "Document content...",
+                        "authors": "Author Name",
+                        "year": 2024
+                    }
+                ],
+                "collection_name": "ResearchPaper",
+                "document_ids": ["doc1", "doc2"]
             }
         }
     }
