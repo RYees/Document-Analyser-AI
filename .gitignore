@@ -6,3 +6,4 @@ settings/
 utils/
 venv/
 api/.env/
+frontend/
