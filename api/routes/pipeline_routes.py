@@ -69,19 +69,26 @@ async def start_pipeline(
                 detail=f"Failed to start pipeline: {result.get('error', 'Unknown error')}"
             )
         
-        # Create response
+        # Determine final status from result
+        final_status_str = result.get("status") or ("completed" if result.get("success") else "failed")
+        try:
+            final_status = PipelineStatus(final_status_str)
+        except Exception:
+            final_status = PipelineStatus.COMPLETED if result.get("success") else PipelineStatus.FAILED
+
+        # Create response reflecting actual completion state
         response = PipelineResponse(
             success=True,
             pipeline_id=str(result["pipeline_id"]),  # Convert UUID to string
-            status=PipelineStatus.RUNNING,
+            status=final_status,
             data={
-                "current_step": 1,
-                "total_steps": 6,
-                "started_at": datetime.now(timezone.utc).isoformat(),
+                "current_step": result.get("data", {}).get("current_step", 6 if final_status == PipelineStatus.COMPLETED else 0),
+                "total_steps": result.get("data", {}).get("total_steps", 6),
+                "started_at": result.get("data", {}).get("started_at", datetime.now(timezone.utc).isoformat()),
                 "query": request.query,
                 "research_domain": request.research_domain,
-                "quality_scores": {},
-                "supervisor_decisions": {}
+                "quality_scores": result.get("data", {}).get("quality_scores", {}),
+                "supervisor_decisions": result.get("data", {}).get("supervisor_decisions", {})
             },
             timestamp=datetime.now(timezone.utc).isoformat()
         )
