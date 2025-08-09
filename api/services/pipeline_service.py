@@ -671,6 +671,13 @@ class PipelineService:
                 pipelines.append(pipeline_info)
                 print(f"[LIST_PIPELINES]     ✅ Converted pipeline {pipeline_data['pipeline_id'][:8]}...")
             
+            # Sort latest to oldest by started_at
+            try:
+                from datetime import datetime
+                pipelines.sort(key=lambda p: datetime.fromisoformat(p.get("started_at") or "1970-01-01T00:00:00+00:00"), reverse=True)
+            except Exception:
+                pass
+
             final_result = {
                 "success": True,
                 "data": {

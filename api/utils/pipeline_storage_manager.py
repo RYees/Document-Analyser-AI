@@ -321,8 +321,21 @@ class PipelineStorageManager:
         
         print(f"🗄️ After filtering: {len(filtered_results)} pipelines")
         
+        # Sort latest to oldest by created_at (fallback to updated_at)
+        try:
+            from datetime import datetime
+            def _parse_dt(p):
+                ts = p.get("created_at") or p.get("updated_at") or "1970-01-01T00:00:00+00:00"
+                try:
+                    return datetime.fromisoformat(ts)
+                except Exception:
+                    return datetime.min.replace(tzinfo=None)
+            sorted_results = sorted(filtered_results, key=_parse_dt, reverse=True)
+        except Exception:
+            sorted_results = filtered_results
+        
         # Apply offset and limit
-        final_results = filtered_results[offset:offset + limit]
+        final_results = sorted_results[offset:offset + limit]
         print(f"🗄️ After pagination: {len(final_results)} pipelines")
         
         print(f"🗄️ Final pipeline list:")

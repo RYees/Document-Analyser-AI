@@ -7,6 +7,7 @@ from io import BytesIO
 import PyPDF2
 import sys
 import os
+import random
 # Add the api directory to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from utils.vector_store_manager import VectorStoreManager
@@ -22,7 +23,7 @@ class DataExtractorAgent:
 
     async def fetch_papers(self, query: str, max_results: int = None, year_from: int = None, year_to: int = None) -> List[Dict[str, Any]]:
         """
-        Fetch academic papers and metadata from CORE API.
+        Fetch academic papers and metadata from CORE API with retries, backoff, and pagination.
         """
         api_key = os.getenv("CORE_API_KEY")
         print(f"[DEBUG] CORE_API_KEY found: {bool(api_key)}")
@@ -31,81 +32,125 @@ class DataExtractorAgent:
             print(f"[WARNING] CORE API key not found, returning empty results")
             return []
         
-        print(f"[DEBUG] Fetching papers with query: '{query}', max_results: {max_results}")
+        # Respect incoming params; provide conservative fallbacks
+        target_total = max_results if max_results is not None else 20
+        y_from = year_from if year_from is not None else 2020
+        y_to = year_to if year_to is not None else 2024
+
+        print(f"[DEBUG] Fetching papers with query: '{query}', max_results: {target_total}")
         
         url = "https://api.core.ac.uk/v3/search/works"
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         }
-        payload = {
-            "q": query,
-            "limit": max_results or 20,
-            "scroll": False,
-            "year_from": year_from or 2020,
-            "year_to": year_to or 2024,
-            "fields": ["title", "authors", "abstract", "year", "doi", "downloadUrl", "citations", "language"]
-        }
         
-        print(f"[DEBUG] CORE API payload: {payload}")
-        
-        try:
-            timeout = aiohttp.ClientTimeout(total=30)  # 30 second timeout
-            async with aiohttp.ClientSession(timeout=timeout) as session:
-                async with session.post(url, headers=headers, json=payload) as response:
-                    print(f"[DEBUG] CORE API response status: {response.status}")
-                    
-                    if response.status == 200:
-                        data = await response.json()
-                        print(f"[DEBUG] CORE API response received successfully")
-                        
-                        results = data.get("results", [])
-                        print(f"[DEBUG] Found {len(results)} papers")
-                        
-                        papers = []
-                        for result in results:
-                            paper = {
-                                "title": result.get("title", "Unknown Title"),
-                                "authors": result.get("authors", []),
-                                "abstract": result.get("abstract", ""),
-                                "year": result.get("year", year_to),
-                                "doi": result.get("doi", ""),
-                                "downloadUrl": result.get("downloadUrl", ""),
-                                "citations": result.get("citations", []),
-                                "language": result.get("language", "en")
-                            }
-                            papers.append(paper)
-                        
-                        print(f"[DEBUG] Successfully processed {len(papers)} papers")
-                        return papers
-                        
-                    elif response.status == 500:
-                        error_text = await response.text()
-                        print(f"[WARNING] CORE API server error (500): {error_text}")
-                        print(f"[INFO] This typically means the CORE API is overloaded or temporarily unavailable")
-                        print(f"[INFO] Returning empty results to allow pipeline to continue")
-                        return []
-                        
-                    elif response.status == 429:
-                        print(f"[WARNING] CORE API rate limit exceeded (429)")
-                        print(f"[INFO] Too many requests - please wait before retrying")
-                        return []
-                        
-                    else:
+        # Use small page size to reduce load on CORE; we page until target_total
+        page_size = min(5, target_total) if target_total > 0 else 0
+        papers: List[Dict[str, Any]] = []
+        scroll_id: str | None = None
+
+        # Retry policy
+        max_attempts = 3
+        timeout = aiohttp.ClientTimeout(total=12)
+
+        async def _attempt_request(session: aiohttp.ClientSession, payload: Dict[str, Any]) -> Dict[str, Any] | None:
+            for attempt in range(max_attempts):
+                try:
+                    async with session.post(url, headers=headers, json=payload) as response:
+                        print(f"[DEBUG] CORE API response status: {response.status}")
+                        if response.status == 200:
+                            data = await response.json()
+                            print(f"[DEBUG] CORE API response received successfully")
+                            return data
+                        # Transient errors: 429/5xx → backoff and retry
+                        if response.status in (429, 500, 502, 503, 504):
+                            body_text = await response.text()
+                            if response.status == 429:
+                                print(f"[WARNING] CORE API rate limit exceeded (429)")
+                            else:
+                                print(f"[WARNING] CORE API server error ({response.status}): {body_text}")
+                            retry_after = response.headers.get("Retry-After")
+                            if retry_after:
+                                try:
+                                    delay = min(10.0, float(retry_after))
+                                except ValueError:
+                                    delay = 0.0
+                            else:
+                                delay = (1.5 ** attempt) + random.random() * 0.5
+                            print(f"[INFO] Backing off for {delay:.2f}s before retry {attempt+1}/{max_attempts}")
+                            await asyncio.sleep(delay)
+                            continue
+                        # Non-retryable
                         error_text = await response.text()
                         print(f"[ERROR] CORE API request failed with status {response.status}")
                         print(f"[ERROR] Response: {error_text}")
-                        return []
-                        
-        except asyncio.TimeoutError:
-            print(f"[ERROR] CORE API request timed out after 30 seconds")
-            print(f"[INFO] Network or API may be slow - returning empty results")
+                        return None
+                except asyncio.TimeoutError:
+                    print(f"[ERROR] CORE API request timed out (attempt {attempt+1}/{max_attempts})")
+                    delay = (1.5 ** attempt) + random.random() * 0.5
+                    await asyncio.sleep(delay)
+                except Exception as e:
+                    print(f"[ERROR] Unexpected error fetching papers (attempt {attempt+1}/{max_attempts}): {e}")
+                    delay = (1.5 ** attempt) + random.random() * 0.5
+                    await asyncio.sleep(delay)
+            return None
+        
+        if page_size <= 0:
             return []
-            
+
+        try:
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                while len(papers) < target_total:
+                    # Build payload for this page
+                    payload: Dict[str, Any] = {
+                        "q": query,
+                        "limit": min(page_size, target_total - len(papers)),
+                        "scroll": True,
+                        "year_from": y_from,
+                        "year_to": y_to,
+                        "fields": [
+                            "title", "authors", "abstract", "year", "doi", "downloadUrl", "citations", "language"
+                        ]
+                    }
+                    if scroll_id:
+                        payload["scroll_id"] = scroll_id
+
+                    print(f"[DEBUG] CORE API payload: {payload}")
+                    data = await _attempt_request(session, payload)
+                    if not data:
+                        print("[INFO] Returning what we have due to repeated CORE errors")
+                        break
+
+                    results = data.get("results", []) or []
+                    scroll_id = data.get("scroll_id")
+                    print(f"[DEBUG] Found {len(results)} papers in this page; scroll_id present: {bool(scroll_id)}")
+
+                    # Map results
+                    for result in results:
+                        paper = {
+                            "title": result.get("title", "Unknown Title"),
+                            "authors": result.get("authors", []),
+                            "abstract": result.get("abstract", ""),
+                            "year": result.get("year", y_to),
+                            "doi": result.get("doi", ""),
+                            "downloadUrl": result.get("downloadUrl", ""),
+                            "citations": result.get("citations", []),
+                            "language": result.get("language", "en")
+                        }
+                        papers.append(paper)
+                        if len(papers) >= target_total:
+                            break
+
+                    # Stop if no more results or no scroll token
+                    if not results or not scroll_id:
+                        break
         except Exception as e:
-            print(f"[ERROR] Unexpected error fetching papers: {e}")
-            print(f"[INFO] Returning empty results to allow pipeline to continue")
-            return []
+            print(f"[ERROR] Unexpected error in fetch_papers loop: {e}")
+            return papers
+
+        print(f"[DEBUG] Successfully processed {len(papers)} papers (requested {target_total})")
+        return papers
 
     async def extract_pdf_content(self, pdf_url: str, paper_id: str) -> Dict[str, Any]:
         """

@@ -1,10 +1,22 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional
 import os
+import json
 from langchain_openai import ChatOpenAI
 import logging
 
 logger = logging.getLogger(__name__)
+
+# Load environment variables from JSON file to keep behavior consistent
+json_env_path = os.path.join(os.path.dirname(__file__), '../.env/vars.json')
+if os.path.exists(json_env_path):
+    try:
+        with open(json_env_path) as f:
+            env_vars = json.load(f)
+        for k, v in env_vars.items():
+            os.environ[k] = v
+    except Exception as _:
+        pass
 
 class LLMBackend(ABC):
     """Abstract base class for LLM backends"""
@@ -30,7 +42,7 @@ class OpenAIBackend(LLMBackend):
     def __init__(self, model: str = "gpt-4-turbo-preview", temperature: float = 0.7):
         self.model = model
         self.temperature = temperature
-        self.api_key ="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"
+        self.api_key = os.getenv("OPENAI_API_KEY")
         
         if not self.api_key:
             raise ValueError("OPENAI_API_KEY environment variable is required")

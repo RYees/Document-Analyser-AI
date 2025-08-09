@@ -41,6 +41,61 @@ class WeaviateManager:
             return
         
         self._connect()
+
+    def _ensure_filters(self, raw_filters: Any):
+        """
+        Convert legacy dict filters to Weaviate Filter object when needed.
+        Accepts:
+          - None
+          - already-built Filter/Filters object
+          - dict in {"path": [..], "operator": "Equal", "valueString"|valueInt|...}
+        Returns a Filters-compatible object or None.
+        """
+        if raw_filters is None:
+            return None
+        # If this already looks like a Filters object, pass through
+        if hasattr(raw_filters, "to_dict") or raw_filters.__class__.__name__.endswith("Filters"):
+            return raw_filters
+        # Map simple dict to Filter
+        if isinstance(raw_filters, dict):
+            try:
+                path = raw_filters.get("path") or raw_filters.get("paths")
+                if isinstance(path, list) and path:
+                    prop = path[-1]
+                elif isinstance(path, str):
+                    prop = path
+                else:
+                    return None
+                operator = (raw_filters.get("operator") or "").lower()
+                # Value resolution
+                if "valueString" in raw_filters:
+                    value = raw_filters.get("valueString")
+                elif "valueText" in raw_filters:
+                    value = raw_filters.get("valueText")
+                elif "valueInt" in raw_filters:
+                    value = raw_filters.get("valueInt")
+                elif "valueNumber" in raw_filters:
+                    value = raw_filters.get("valueNumber")
+                elif "valueBoolean" in raw_filters:
+                    value = raw_filters.get("valueBoolean")
+                else:
+                    value = None
+                f = Filter.by_property(prop)
+                if operator in ("equal", "eq"):
+                    return f.equal(value)
+                if operator in ("notequal", "ne"):
+                    return f.not_equal(value)
+                if operator in ("greaterthan", "gt"):
+                    return f.greater_than(value)
+                if operator in ("lessthan", "lt"):
+                    return f.less_than(value)
+                if operator in ("like",):
+                    return f.like(str(value) if value is not None else "")
+                # Fallback to equality
+                return f.equal(value)
+            except Exception as _:
+                return None
+        return None
     
     def _connect(self) -> bool:
         """Establish connection to Weaviate with retry logic"""
@@ -477,7 +532,7 @@ class WeaviateManager:
             }
             
             if filters:
-                query_params["where"] = filters
+                query_params["filters"] = self._ensure_filters(filters)
             
             # Use fetch_objects to get all documents without search
             response = collection.query.fetch_objects(**query_params)
@@ -524,7 +579,7 @@ class WeaviateManager:
             if filters:
                 response = collection.query.near_text(
                     query=query,
-                    where=filters,
+                    filters=self._ensure_filters(filters),
                     **search_params
                 )
             else:
@@ -574,7 +629,7 @@ class WeaviateManager:
             }
             
             if filters:
-                search_params["where"] = filters
+                search_params["filters"] = self._ensure_filters(filters)
             
             if return_metadata:
                 search_params["return_metadata"] = MetadataQuery(score=True)
@@ -626,7 +681,7 @@ class WeaviateManager:
             }
             
             if filters:
-                search_params["where"] = filters
+                search_params["filters"] = self._ensure_filters(filters)
             
             if return_metadata:
                 search_params["return_metadata"] = MetadataQuery(distance=True, score=True)
@@ -723,7 +778,7 @@ class WeaviateManager:
             }
             
             if filters:
-                search_params["where"] = filters
+                search_params["filters"] = self._ensure_filters(filters)
             
             if single_prompt:
                 search_params["single_prompt"] = single_prompt
@@ -776,7 +831,7 @@ class WeaviateManager:
             }
             
             if filters:
-                search_params["where"] = filters
+                search_params["filters"] = self._ensure_filters(filters)
             
             # Perform reranker search
             response = collection.query.rerank(
@@ -866,7 +921,7 @@ class WeaviateManager:
             }
             
             if filters:
-                search_params["where"] = filters
+                search_params["filters"] = self._ensure_filters(filters)
             
             if reference_property:
                 search_params["return_references"] = {
