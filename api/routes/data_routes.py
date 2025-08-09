@@ -14,11 +14,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 from fastapi import APIRouter, HTTPException, Query, Path
 from fastapi.responses import JSONResponse
 
-from api.models.requests import DataRequest
-from api.models.responses import (
+from models.requests import DataRequest
+from models.responses import (
     DataResponse, DataStatisticsResponse
 )
-from api.services.data_service import DataService
+from services.data_service import DataService
 
 router = APIRouter()
 

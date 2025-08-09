@@ -9,7 +9,7 @@ import sys
 import os
 # Add the api directory to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from api.utils.vector_store_manager import VectorStoreManager
+from utils.vector_store_manager import VectorStoreManager
 
 class DataExtractorAgent:
     """

@@ -13,7 +13,7 @@ import sys
 # Add the parent directory to the path to import agents
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from api.agents.report_generator_agent import ReportGeneratorAgent
+from agents.report_generator_agent import ReportGeneratorAgent
 
 class ReportService:
     """
@@ -25,7 +25,10 @@ class ReportService:
         self.report_agent = ReportGeneratorAgent()
         
         # Create reports directory if it doesn't exist
-        self.reports_dir = os.path.join(os.path.dirname(__file__), "..", "..", "reports")
+        # Use /tmp on serverless to avoid read-only filesystem
+        serverless_tmp = os.environ.get("VERCEL", "") != ""
+        base_dir = "/tmp" if serverless_tmp else os.path.join(os.path.dirname(__file__), "..", "..")
+        self.reports_dir = os.path.join(base_dir, "reports")
         os.makedirs(self.reports_dir, exist_ok=True)
         
         # Track reports

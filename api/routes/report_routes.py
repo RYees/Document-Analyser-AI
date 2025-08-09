@@ -16,11 +16,11 @@ from fastapi.responses import JSONResponse, FileResponse
 from fastapi.responses import StreamingResponse
 import io
 
-from api.models.requests import ReportRequest
-from api.models.responses import (
+from models.requests import ReportRequest
+from models.responses import (
     ReportResponse, ReportListResponse, ReportDownloadResponse, ReportStatisticsResponse
 )
-from api.services.report_service import ReportService
+from services.report_service import ReportService
 
 router = APIRouter()
 

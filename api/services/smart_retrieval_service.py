@@ -12,8 +12,8 @@ import os
 # Add the parent directory to the path to import utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from api.utils.vector_store_manager import VectorStoreManager
-from api.services.data_extraction_service import DataExtractionService
+from utils.vector_store_manager import VectorStoreManager
+from services.data_extraction_service import DataExtractionService
 
 class SmartRetrievalService:
     """

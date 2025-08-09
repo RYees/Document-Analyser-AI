@@ -1,4 +1,4 @@
-from api.utils.vector_store_manager import VectorStoreManager
+from utils.vector_store_manager import VectorStoreManager
 from typing import List, Dict, Any
 import asyncio
 

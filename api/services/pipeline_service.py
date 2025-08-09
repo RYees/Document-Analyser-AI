@@ -12,11 +12,11 @@ import os
 # Add the parent directory to the path to import services
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from api.services.agent_service import AgentService
-from api.services.data_service import DataService
-from api.services.quality_service import QualityService
-from api.services.report_service import ReportService
-from api.utils.pipeline_storage_manager import PipelineStorageManager
+from services.agent_service import AgentService
+from services.data_service import DataService
+from services.quality_service import QualityService
+from services.report_service import ReportService
+from utils.pipeline_storage_manager import PipelineStorageManager
 
 class PipelineService:
     """

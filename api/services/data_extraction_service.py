@@ -12,7 +12,7 @@ import os
 # Add the parent directory to the path to import agents
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from api.agents.data_extractor_agent import DataExtractorAgent
+from agents.data_extractor_agent import DataExtractorAgent
 
 class DataExtractionService:
     """

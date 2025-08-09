@@ -7,7 +7,7 @@ import sys
 import os
 # Add the api directory to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from api.utils.llm_backends import get_llm_backend
+from utils.llm_backends import get_llm_backend
 
 @dataclass
 class RefinedTheme:
@@ -55,7 +55,7 @@ class ThemeRefinerAgent:
         """
         Construct a prompt for the LLM to perform theme refinement.
         """
-        from api.agents.agent_prompts.theme_refiner_prompts import ThemeRefinerPrompts
+        from agents.agent_prompts.theme_refiner_prompts import ThemeRefinerPrompts
         
         return ThemeRefinerPrompts.build_refinement_prompt(
             themes=themes,

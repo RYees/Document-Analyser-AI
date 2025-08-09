@@ -5,7 +5,7 @@ Prompt templates for the Literature Review Agent.
 """
 
 from typing import List, Dict, Any
-from api.agents.agent_prompts.base_prompts import BaseAgentPrompts
+from agents.agent_prompts.base_prompts import BaseAgentPrompts
 
 class LiteratureReviewPrompts:
     """

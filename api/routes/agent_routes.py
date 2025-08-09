@@ -14,30 +14,30 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 from fastapi import APIRouter, HTTPException, Query, Path, Body, BackgroundTasks
 from fastapi.responses import JSONResponse
 
-from api.models.requests import AgentRequest
-from api.models.responses import (
+from models.requests import AgentRequest
+from models.responses import (
     AgentResponse, AgentStatusResponse, AgentHealthResponse
 )
-from api.models.agents import (
+from models.agents import (
     AgentType, AgentStatus,
     DataExtractorRequest, RetrieverRequest, LiteratureReviewRequest,
     InitialCodingRequest, ThematicGroupingRequest, ThemeRefinementRequest,
     ReportGenerationRequest, SupervisorRequest, RetryAgentRequest
 )
-from api.services.agent_service import AgentService
+from services.agent_service import AgentService
 
 # Import individual agents
-from api.agents.data_extractor_agent import DataExtractorAgent
-from api.agents.retriever_agent import RetrieverAgent
-from api.agents.literature_review_agent import LiteratureReviewAgent
-from api.agents.initial_coding_agent import InitialCodingAgent
-from api.agents.thematic_grouping_agent import ThematicGroupingAgent
-from api.agents.theme_refiner_agent import ThemeRefinerAgent
-from api.agents.report_generator_agent import ReportGeneratorAgent
-from api.agents.supervisor_agent import SupervisorAgent
-from api.agents.enhanced_supervisor_agent import EnhancedSupervisorAgent
-from api.services.agent_retry_service import AgentRetryService
-from api.utils.llm_backends import get_llm_backend
+from agents.data_extractor_agent import DataExtractorAgent
+from agents.retriever_agent import RetrieverAgent
+from agents.literature_review_agent import LiteratureReviewAgent
+from agents.initial_coding_agent import InitialCodingAgent
+from agents.thematic_grouping_agent import ThematicGroupingAgent
+from agents.theme_refiner_agent import ThemeRefinerAgent
+from agents.report_generator_agent import ReportGeneratorAgent
+from agents.supervisor_agent import SupervisorAgent
+from agents.enhanced_supervisor_agent import EnhancedSupervisorAgent
+from services.agent_retry_service import AgentRetryService
+from utils.llm_backends import get_llm_backend
 import asyncio
 import traceback
 
@@ -550,7 +550,7 @@ async def check_agent_quality(request: SupervisorRequest):
             print(f"🔍 [SUPERVISOR DEBUG] WARNING: original_agent_input is None or empty!")
         
         # Initialize enhanced supervisor agent
-        from api.agents.enhanced_supervisor_agent import EnhancedSupervisorAgent
+        from agents.enhanced_supervisor_agent import EnhancedSupervisorAgent
         supervisor_agent = EnhancedSupervisorAgent()
         
         # Run enhanced evaluation and retry

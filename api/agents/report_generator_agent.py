@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 # Add the api directory to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from api.utils.llm_backends import get_llm_backend
+from utils.llm_backends import get_llm_backend
 
 class ReportGeneratorAgent:
     """
@@ -89,7 +89,7 @@ class ReportGeneratorAgent:
         """
         Construct a prompt for the LLM to generate the complete academic report.
         """
-        from api.agents.agent_prompts.report_generator_prompts import ReportGeneratorPrompts
+        from agents.agent_prompts.report_generator_prompts import ReportGeneratorPrompts
         
         return ReportGeneratorPrompts.build_report_prompt(
             sections=sections,

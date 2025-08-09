@@ -14,8 +14,8 @@ import os
 
 # Add the api directory to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from api.utils.llm_backends import get_llm_backend
-from api.agents.supervisor_prompts.assessment_templates import AssessmentTemplates
+from utils.llm_backends import get_llm_backend
+from agents.supervisor_prompts.assessment_templates import AssessmentTemplates
 
 @dataclass
 class RetryConfig:
@@ -80,12 +80,12 @@ class EnhancedSupervisorAgent:
     def _initialize_agents(self):
         """Initialize agent instances for retry functionality."""
         try:
-            from api.agents.data_extractor_agent import DataExtractorAgent
-            from api.agents.literature_review_agent import LiteratureReviewAgent
-            from api.agents.initial_coding_agent import InitialCodingAgent
-            from api.agents.thematic_grouping_agent import ThematicGroupingAgent
-            from api.agents.theme_refiner_agent import ThemeRefinerAgent
-            from api.agents.report_generator_agent import ReportGeneratorAgent
+            from agents.data_extractor_agent import DataExtractorAgent
+            from agents.literature_review_agent import LiteratureReviewAgent
+            from agents.initial_coding_agent import InitialCodingAgent
+            from agents.thematic_grouping_agent import ThematicGroupingAgent
+            from agents.theme_refiner_agent import ThemeRefinerAgent
+            from agents.report_generator_agent import ReportGeneratorAgent
             
             self.agents = {
                 "data_extractor": DataExtractorAgent(),

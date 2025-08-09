@@ -7,7 +7,7 @@ import sys
 import os
 # Add the api directory to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from api.utils.llm_backends import get_llm_backend
+from utils.llm_backends import get_llm_backend
 
 @dataclass
 class MeaningUnit:
@@ -120,7 +120,7 @@ class InitialCodingAgent:
         """
         Construct a prompt for the LLM to perform open coding.
         """
-        from api.agents.agent_prompts.initial_coding_prompts import InitialCodingPrompts
+        from agents.agent_prompts.initial_coding_prompts import InitialCodingPrompts
         
         return InitialCodingPrompts.build_coding_prompt(
             meaning_units=meaning_units,

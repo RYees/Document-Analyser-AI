@@ -12,12 +12,12 @@ import os
 # Add the parent directory to the path to import agents
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from api.agents.literature_review_agent import LiteratureReviewAgent
-from api.agents.initial_coding_agent import InitialCodingAgent
-from api.agents.thematic_grouping_agent import ThematicGroupingAgent
-from api.agents.theme_refiner_agent import ThemeRefinerAgent
-from api.agents.report_generator_agent import ReportGeneratorAgent
-from api.agents.supervisor_agent import SupervisorAgent
+from agents.literature_review_agent import LiteratureReviewAgent
+from agents.initial_coding_agent import InitialCodingAgent
+from agents.thematic_grouping_agent import ThematicGroupingAgent
+from agents.theme_refiner_agent import ThemeRefinerAgent
+from agents.report_generator_agent import ReportGeneratorAgent
+from agents.supervisor_agent import SupervisorAgent
 
 class AgentService:
     """

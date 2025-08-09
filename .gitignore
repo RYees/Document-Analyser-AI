@@ -6,4 +6,4 @@ settings/
 utils/
 venv/
 api/.env/
-frontend/
+.vercel

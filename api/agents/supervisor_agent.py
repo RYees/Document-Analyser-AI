@@ -7,8 +7,8 @@ import sys
 import os
 # Add the api directory to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from api.utils.llm_backends import get_llm_backend
-from api.agents.supervisor_prompts.assessment_templates import AssessmentTemplates
+from utils.llm_backends import get_llm_backend
+from agents.supervisor_prompts.assessment_templates import AssessmentTemplates
 
 @dataclass
 class QualityAssessment:

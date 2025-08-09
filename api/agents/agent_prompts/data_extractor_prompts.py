@@ -7,7 +7,7 @@ but this structure is prepared for future enhancements.
 """
 
 from typing import List, Dict, Any
-from api.agents.agent_prompts.base_prompts import BaseAgentPrompts
+from agents.agent_prompts.base_prompts import BaseAgentPrompts
 
 class DataExtractorPrompts:
     """

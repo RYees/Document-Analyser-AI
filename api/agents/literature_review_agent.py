@@ -6,7 +6,7 @@ import sys
 import os
 # Add the api directory to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from api.utils.llm_backends import get_llm_backend
+from utils.llm_backends import get_llm_backend
 
 class LiteratureReviewAgent:
     """
@@ -22,7 +22,7 @@ class LiteratureReviewAgent:
         """
         Construct a prompt for the LLM to generate a literature review.
         """
-        from api.agents.agent_prompts.literature_review_prompts import LiteratureReviewPrompts
+        from agents.agent_prompts.literature_review_prompts import LiteratureReviewPrompts
         
         return LiteratureReviewPrompts.build_literature_review_prompt(
             documents=documents,

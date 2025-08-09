@@ -7,7 +7,7 @@ import sys
 import os
 # Add the api directory to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from api.utils.llm_backends import get_llm_backend
+from utils.llm_backends import get_llm_backend
 
 @dataclass
 class Code:
@@ -88,7 +88,7 @@ class ThematicGroupingAgent:
         """
         Construct a prompt for the LLM to perform thematic grouping.
         """
-        from api.agents.agent_prompts.thematic_grouping_prompts import ThematicGroupingPrompts
+        from agents.agent_prompts.thematic_grouping_prompts import ThematicGroupingPrompts
         
         return ThematicGroupingPrompts.build_thematic_prompt(
             codes=codes,

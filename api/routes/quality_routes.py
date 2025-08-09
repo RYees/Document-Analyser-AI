@@ -14,12 +14,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 from fastapi import APIRouter, HTTPException, Query, Path
 from fastapi.responses import JSONResponse
 
-from api.models.requests import QualityRequest, QualityOverrideRequest, QualityThresholdsRequest
-from api.models.responses import (
-    QualityResponse, QualityHistoryResponse, QualityAnalyticsResponse
+from models.requests import QualityRequest, QualityOverrideRequest, QualityThresholdsRequest
+from models.responses import (
+    QualityResponse, QualityHistoryResponse, QualityAnalyticsResponse, ErrorResponse, SuccessResponse
 )
-from api.models.agents import AgentType
-from api.services.quality_service import QualityService
+from models.agents import AgentType
+from services.quality_service import QualityService
 
 router = APIRouter()
 

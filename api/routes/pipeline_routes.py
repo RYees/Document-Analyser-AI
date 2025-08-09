@@ -14,13 +14,13 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Query, Path
 from fastapi.responses import JSONResponse, FileResponse
 
-from api.models.requests import PipelineRequest
-from api.models.responses import (
+from models.requests import PipelineRequest
+from models.responses import (
     PipelineResponse, PipelineProgressResponse, PipelineResultsResponse,
     PipelineStatisticsResponse, ErrorResponse, SuccessResponse
 )
-from api.models.responses import PipelineStatus
-from api.services.pipeline_service import PipelineService
+from models.responses import PipelineStatus
+from services.pipeline_service import PipelineService
 
 router = APIRouter()
 
