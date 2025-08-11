@@ -161,7 +161,12 @@ class VectorStoreManager:
                 print(f"[DEBUG] Adding research domain filter: {research_domain}")
             
             raw_results = self.weaviate.search_documents(self.collection_name, query, limit=top_k, filters=filters)
-            print(f"[DEBUG] Search returned {len(raw_results)} results")
+            if not raw_results:
+                print(f"[DEBUG] Search returned 0 results for query='{query}' domain='{research_domain or 'None'}'")
+                return []
+            else:
+                first_title = (raw_results[0].get("properties", {}) or {}).get("title", "")
+                print(f"[DEBUG] Search returned {len(raw_results)} results. First title: {first_title}")
             
             # Transform results to expected format
             transformed_results = []
@@ -192,7 +197,7 @@ class VectorStoreManager:
         except Exception as e:
             print(f"[ERROR] Weaviate similarity search failed: {e}")
             logger.error(f"❌ Weaviate similarity search failed: {e}")
-            raise RuntimeError(f"Weaviate similarity search failed: {e}")
+            raise RuntimeError(f"Similarity search failed for query='{query}' domain='{research_domain or 'None'}': {e}")
 
     def add_document(self, document: Dict[str, Any]) -> bool:
         """
@@ -242,7 +247,6 @@ class VectorStoreManager:
             
             print(f"[DEBUG] Found {len(collections)} collections: {collections}")
             
-
             
             # Process any collections that were found
             for collection_name in collections:

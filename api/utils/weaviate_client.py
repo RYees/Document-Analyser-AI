@@ -565,7 +565,6 @@ class WeaviateManager:
             logger.info(f"Searching in {collection_name} with query: {query[:50]}...")
             
             collection = self.client.collections.get(collection_name)
-            
             # Build search parameters
             search_params = {
                 "limit": limit,

@@ -21,7 +21,8 @@ import {
   Sparkles,
   FileCheck,
   Shield,
-  Eye
+  Eye,
+  X
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { AgentResponse, SupervisorResult, RetryAgentRequest } from '@/types/api'
@@ -40,7 +41,7 @@ interface EnhancedAgentFormProps {
   fields: Array<{
     name: string
     label: string
-    type: 'text' | 'textarea' | 'number' | 'select' | 'json' | 'documents' | 'coded_units' | 'themes'
+    type: 'text' | 'textarea' | 'number' | 'select' | 'multiselect' | 'chips' | 'json' | 'documents' | 'coded_units' | 'themes'
     required?: boolean
     placeholder?: string
     options?: Array<{ value: string; label: string }>
@@ -76,6 +77,9 @@ export function EnhancedAgentForm({
   const [supervisorResult, setSupervisorResult] = useState<SupervisorResult | null>(null)
   const [isSupervisorLoading, setIsSupervisorLoading] = useState(false)
   const [showSupervisor, setShowSupervisor] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState<Record<string, boolean>>({})
+  const [docPreview, setDocPreview] = useState<any | null>(null)
+  const [cardPreview, setCardPreview] = useState<{ title: string; content: string } | null>(null)
 
   const {
     register,
@@ -93,7 +97,6 @@ export function EnhancedAgentForm({
 
   // Watch form values in real-time to debug
   const watchedValues = watch()
-  console.log('🔍 [FORM WATCH] Current form values:', watchedValues)
   
   // Update originalInput whenever form values change
   useEffect(() => {
@@ -109,26 +112,17 @@ export function EnhancedAgentForm({
       if (currentValuesString !== previousValuesRef.current) {
         previousValuesRef.current = currentValuesString
         setOriginalInput(cleanValues)
-        console.log('🔍 [FORM WATCH] Updated originalInput with current form values:', cleanValues)
       }
     }
   }, [watchedValues])
 
-  const handleFormSubmit = async (data: any) => {
-    console.log('🔍 [FORM DEBUG] Form submitted with data:', JSON.stringify(data, null, 2))
-    console.log('🔍 [FORM DEBUG] max_results type:', typeof data.max_results, 'value:', data.max_results)
-    console.log('🔍 [FORM DEBUG] year_from type:', typeof data.year_from, 'value:', data.year_from)
-    console.log('🔍 [FORM DEBUG] year_to type:', typeof data.year_to, 'value:', data.year_to)
-    
+  const handleFormSubmit = async (data: any) => {   
     setIsLoading(true)
     setError(null)
     setResult(null)
     setSupervisorResult(null)
     setShowSupervisor(false)
-
-    // Store the original input for supervisor and retry
     setOriginalInput(data)
-    console.log('🔍 [FORM DEBUG] Original input stored:', JSON.stringify(data, null, 2))
 
     try {
       console.log('Calling onSubmit function...')
@@ -145,12 +139,6 @@ export function EnhancedAgentForm({
 
   const handleSupervisorCheck = async () => {
     if (!result || !onSupervisorCheck || !originalInput) return
-
-    console.log('🔍 [SUPERVISOR DEBUG] About to call supervisor with original input:', JSON.stringify(originalInput, null, 2))
-    console.log('🔍 [SUPERVISOR DEBUG] max_results in original input:', originalInput.max_results)
-    console.log('🔍 [SUPERVISOR DEBUG] year_from in original input:', originalInput.year_from)
-    console.log('🔍 [SUPERVISOR DEBUG] year_to in original input:', originalInput.year_to)
-
     setIsSupervisorLoading(true)
     setError(null)
 
@@ -250,6 +238,7 @@ export function EnhancedAgentForm({
 
   const renderField = (field: any) => {
     const { name, label, type, required, placeholder, options, helpText } = field
+    const mode = watch('mode')
 
     switch (type) {
       case 'textarea':
@@ -294,6 +283,107 @@ export function EnhancedAgentForm({
             <select
               {...register(name, { required: required && `${label} is required` })}
               className="w-full px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+            >
+              {options?.map((option: any) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {helpText && <p className="text-sm text-gray-500 mt-1">{helpText}</p>}
+          </div>
+        )
+      
+      case 'chips': {
+        const disabled = mode === 'auto'
+        const selected: string[] = Array.isArray(watch(name)) ? watch(name) : []
+        const open = !!dropdownOpen[name]
+        const available = (options || []).filter((o: { value: string; label: string }) => !selected.includes(o.value))
+
+        const addValue = (val: string) => {
+          if (!val || selected.includes(val)) return
+          const next = [...selected, val]
+          setValue(name, next, { shouldDirty: true, shouldValidate: true })
+        }
+        const removeValue = (val: string) => {
+          const next = selected.filter(v => v !== val)
+          setValue(name, next, { shouldDirty: true, shouldValidate: true })
+        }
+        const toggleOpen = () => {
+          if (disabled) return
+          setDropdownOpen(prev => ({ ...prev, [name]: !prev[name] }))
+        }
+        return (
+          <div className="relative">
+            {/* Selected tags */}
+            {selected.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-2">
+                {selected.map((val) => (
+                  <span key={val} className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800 border border-gray-300">
+                    {options?.find((o: { value: string; label: string }) => o.value === val)?.label || val}
+                    <button type="button" className="text-gray-500 hover:text-gray-700" onClick={() => removeValue(val)} disabled={disabled}>
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Toggle button */}
+            <button
+              type="button"
+              onClick={toggleOpen}
+              disabled={disabled}
+              className={cn(
+                "w-full flex items-center justify-between px-3 py-2 border border-gray-400 rounded-md bg-white",
+                disabled ? "opacity-50 cursor-not-allowed" : "hover:border-gray-500"
+              )}
+            >
+              <span className="text-gray-700">{open ? 'Select source…' : 'Add source'}</span>
+              <span className="text-gray-500">{open ? '▴' : '▾'}</span>
+            </button>
+
+            {/* Dropdown menu */}
+            {open && !disabled && (
+              <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow">
+                {available.length === 0 ? (
+                  <div className="px-3 py-2 text-sm text-gray-500">No more sources</div>
+                ) : (
+                  <ul className="max-h-60 overflow-auto">
+                    {available.map((opt: { value: string; label: string }) => (
+                      <li key={opt.value}>
+                        <button
+                          type="button"
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm text-gray-800"
+                          onClick={() => addValue(opt.value)}
+                        >
+                          {opt.label}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            {/* Hidden field to ensure value presence if needed */}
+            <input type="hidden" value={JSON.stringify(selected)} {...register(name)} />
+            {disabled && <p className="text-xs text-gray-500 mt-1">Disabled in auto mode</p>}
+            {helpText && <p className="text-sm text-gray-500 mt-1">{helpText}</p>}
+          </div>
+        )
+      }
+
+      case 'multiselect':
+        return (
+          <div>
+            <select
+              multiple
+              className="w-full px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+              onChange={(e) => {
+                const selected = Array.from(e.currentTarget.selectedOptions).map(o => o.value)
+                setValue(name, selected, { shouldValidate: true, shouldDirty: true })
+              }}
             >
               {options?.map((option: any) => (
                 <option key={option.value} value={option.value}>
@@ -444,6 +534,172 @@ export function EnhancedAgentForm({
           </div>
         )}
 
+        {agentType === 'multi-source-extractor' && (
+          <div className="space-y-6">
+            {/* Summary */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <button
+                type="button"
+                className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-left hover:border-gray-300"
+                onClick={() => setCardPreview({ title: 'Total Found', content: String(data.total_found ?? (data.documents?.length || 0)) })}
+              >
+                <div className="text-xs text-gray-600">Total Found</div>
+                <div className="text-lg font-semibold text-gray-900">{data.total_found ?? (data.documents?.length || 0)}</div>
+              </button>
+              <button
+                type="button"
+                className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-left hover:border-gray-300"
+                onClick={() => setCardPreview({ title: 'Stored', content: String(data.stored ?? 0) })}
+              >
+                <div className="text-xs text-gray-600">Stored</div>
+                <div className="text-lg font-semibold text-gray-900">{data.stored ?? 0}</div>
+              </button>
+              <button
+                type="button"
+                className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-left hover:border-gray-300"
+                onClick={() => setCardPreview({ title: 'Collection', content: String(data.collection_name || '—') })}
+              >
+                <div className="text-xs text-gray-600">Collection</div>
+                <div className="text-sm font-medium text-gray-900 truncate">{data.collection_name || '—'}</div>
+              </button>
+              <button
+                type="button"
+                className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-left hover:border-gray-300"
+                onClick={() => setCardPreview({ title: 'Research Domain', content: String(data.research_domain || '—') })}
+              >
+                <div className="text-xs text-gray-600">Domain</div>
+                <div className="text-sm font-medium text-gray-900 truncate">{data.research_domain || '—'}</div>
+              </button>
+            </div>
+            {cardPreview && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                <div className="w-full max-w-md bg-white rounded-lg shadow-lg border border-gray-200">
+                  <div className="flex items-center justify-between px-4 py-3 border-b">
+                    <h4 className="text-base font-semibold text-gray-900">{cardPreview.title}</h4>
+                    <button className="p-1 text-gray-600 hover:text-gray-900" onClick={() => setCardPreview(null)} aria-label="Close">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="px-4 py-3 text-sm text-gray-800 break-words whitespace-pre-wrap">
+                    {cardPreview.content}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Source Stats */}
+            {Array.isArray(data.source_stats) && data.source_stats.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Source Stats</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {data.source_stats.map((s: any, i: number) => (
+                    <div key={i} className="border border-gray-200 rounded-lg p-3 bg-white">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-medium text-gray-900">{s.name}</div>
+                        <div className="text-xs text-gray-500">{s.errors || 0} errors</div>
+                      </div>
+                      <div className="text-sm text-gray-700 mt-1">Fetched: <span className="font-medium">{s.fetched || 0}</span></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Enrichment Stats */}
+            {Array.isArray(data.enrichment_stats) && data.enrichment_stats.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Enrichment Stats</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {data.enrichment_stats.map((s: any, i: number) => (
+                    <div key={i} className="border border-gray-200 rounded-lg p-3 bg-white">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-medium text-gray-900">{s.name}</div>
+                        <div className="text-xs text-gray-500">{s.errors || 0} errors</div>
+                      </div>
+                      <div className="text-sm text-gray-700 mt-1">Processed: <span className="font-medium">{s.fetched || 0}</span></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Documents */}
+            {Array.isArray(data.documents) && data.documents.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Documents</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {data.documents.slice(0, 6).map((doc: any, index: number) => (
+                    <div
+                      key={index}
+                      className="bg-white border border-gray-200 rounded-lg p-4 cursor-pointer hover:shadow"
+                      onClick={() => setDocPreview(doc)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setDocPreview(doc) }}
+                    >
+                      <h4 className="font-medium text-gray-900 mb-1 truncate" title={doc.title}>{doc.title || 'Untitled'}</h4>
+                      <div className="text-xs text-gray-600 mb-2 flex gap-2">
+                        <span>{doc.year || '—'}</span>
+                        <span className="text-gray-400">•</span>
+                        <span className="truncate" title={doc.source}>{doc.source || '—'}</span>
+                      </div>
+                      {doc.authors && (
+                        <div className="text-xs text-gray-500 mb-2 truncate" title={doc.authors}>{doc.authors}</div>
+                      )}
+                      {doc.doi && (
+                        <div className="text-xs text-gray-500 mb-2 truncate" title={doc.doi}>DOI: {doc.doi}</div>
+                      )}
+                      <p className="text-xs text-gray-700 line-clamp-4">{doc.abstract || doc.content || ''}</p>
+                    </div>
+                  ))}
+                </div>
+                {data.documents.length > 6 && (
+                  <p className="text-sm text-gray-500 text-center mt-2">+{data.documents.length - 6} more documents</p>
+                )}
+              </div>
+            )}
+
+            {/* Document Preview Modal */}
+            {docPreview && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                <div className="w-full max-w-3xl bg-white rounded-lg shadow-lg border border-gray-200">
+                  <div className="flex items-center justify-between px-4 py-3 border-b">
+                    <h4 className="text-base font-semibold text-gray-900 truncate" title={docPreview.title}>{docPreview.title || 'Untitled'}</h4>
+                    <button
+                      className="p-1 text-gray-600 hover:text-gray-900"
+                      onClick={() => setDocPreview(null)}
+                      aria-label="Close preview"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="px-4 py-3 space-y-2 text-sm">
+                    <div className="flex flex-wrap items-center gap-2 text-gray-600">
+                      {docPreview.year && <span>{docPreview.year}</span>}
+                      {docPreview.source && <span className="text-gray-400">•</span>}
+                      {docPreview.source && <span>{docPreview.source}</span>}
+                      {docPreview.doi && (
+                        <>
+                          <span className="text-gray-400">•</span>
+                          <span className="truncate" title={docPreview.doi}>DOI: {docPreview.doi}</span>
+                        </>
+                      )}
+                    </div>
+                    {docPreview.authors && (
+                      <div className="text-xs text-gray-500">{docPreview.authors}</div>
+                    )}
+                    <div className="mt-2 max-h-[70vh] overflow-y-auto">
+                      <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+                        {docPreview.abstract || docPreview.content || 'No preview available'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {agentType === 'literature-review' && (
           <div className="space-y-4">
             {data.summary && renderResultSection('Summary', data.summary, 'summary')}
@@ -587,7 +843,7 @@ export function EnhancedAgentForm({
                               <p className="text-xs text-gray-600 mt-1">{code.definition}</p>
                             )}
                             {code.frequency && (
-                              <span className="text-xs text-gray-500">Frequency: {code.frequency}</span>
+                              <span className="text-xs text_gray-500">Frequency: {code.frequency}</span>
                             )}
                           </div>
                         ))}
@@ -655,18 +911,18 @@ export function EnhancedAgentForm({
             {/* Additional Info */}
             {data.coded_units_analyzed && (
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center justify_between text-sm">
                   <span className="text-gray-700">Coded Units Analyzed:</span>
                   <span className="font-medium text-gray-900">{data.coded_units_analyzed}</span>
                 </div>
                 {data.research_domain && (
-                  <div className="flex items-center justify-between text-sm mt-1">
+                  <div className="flex items-center justify_between text-sm mt-1">
                     <span className="text-gray-700">Research Domain:</span>
                     <span className="font-medium text-gray-900">{data.research_domain}</span>
                   </div>
                 )}
                 {data.generated_at && (
-                  <div className="flex items-center justify-between text-sm mt-1">
+                  <div className="flex items-center justify_between text-sm mt-1">
                     <span className="text-gray-700">Generated:</span>
                     <span className="font-medium text-gray-900">{new Date(data.generated_at).toLocaleString()}</span>
                   </div>
@@ -741,7 +997,7 @@ export function EnhancedAgentForm({
                     <div className="mb-4">
                       <h5 className="text-sm font-medium text-gray-900 mb-2">Precise Definition</h5>
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <p className="text-sm text-gray-700">{theme.precise_definition}</p>
+                        <p className="text_sm text-gray-700">{theme.precise_definition}</p>
                       </div>
                     </div>
                   )}
@@ -751,7 +1007,7 @@ export function EnhancedAgentForm({
                     <div className="mb-4">
                       <h5 className="text-sm font-medium text-gray-900 mb-2">Scope Boundaries</h5>
                       <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                        <p className="text-sm text-gray-700">{theme.scope_boundaries}</p>
+                        <p className="text_sm text-gray-700">{theme.scope_boundaries}</p>
                       </div>
                     </div>
                   )}
@@ -802,7 +1058,7 @@ export function EnhancedAgentForm({
                     <div className="mb-3">
                       <h5 className="text-sm font-medium text-gray-900 mb-2">Research Implications</h5>
                       <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                        <p className="text-sm text-gray-700">{theme.research_implications}</p>
+                        <p className="text-sm text_gray-700">{theme.research_implications}</p>
                       </div>
                     </div>
                   )}
@@ -819,18 +1075,18 @@ export function EnhancedAgentForm({
             {/* Additional Info */}
             {data.themes_refined && (
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center justify_between text-sm">
                   <span className="text-gray-700">Themes Refined:</span>
                   <span className="font-medium text-gray-900">{data.themes_refined}</span>
                 </div>
                 {data.research_domain && (
-                  <div className="flex items-center justify-between text-sm mt-1">
+                  <div className="flex items-center justify_between text-sm mt-1">
                     <span className="text-gray-700">Research Domain:</span>
                     <span className="font-medium text-gray-900">{data.research_domain}</span>
                   </div>
                 )}
                 {data.generated_at && (
-                  <div className="flex items-center justify-between text-sm mt-1">
+                  <div className="flex items_center justify_between text-sm mt-1">
                     <span className="text-gray-700">Generated:</span>
                     <span className="font-medium text-gray-900">{new Date(data.generated_at).toLocaleString()}</span>
                   </div>
@@ -881,7 +1137,7 @@ export function EnhancedAgentForm({
                   <Copy className="w-4 h-4" />
                 </button>
               </div>
-              <div className="max-h-96 overflow-y-auto">
+              <div className="max_h-96 overflow-y-auto">
                 <div className="prose prose-sm max-w-none">
                   <div className="whitespace-pre-wrap text-sm text-gray-800 leading-relaxed">
                     {data.report_content}

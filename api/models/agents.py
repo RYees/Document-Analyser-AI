@@ -518,122 +518,100 @@ class ThematicGroupingRequest(BaseModel):
                         "content": "Text segment about governance...",
                         "codes": [
                             {
-                                "name": "transparency",
-                                "definition": "Openness in decision making",
-                                "confidence": 0.9
+                                "name": "Transparency Mechanisms",
+                                "definition": "Various mechanisms for ensuring transparency",
+                                "confidence": 0.85,
+                                "category": "primary"
                             }
-                        ]
+                        ],
+                        "harvard_citation": "(Author 1, 2023)",
+                        "insights": ["Insight 1"]
                     }
                 ],
-                "research_domain": "Governance Research",
+                "research_domain": "Blockchain",
                 "max_themes": 5,
-                "min_codes_per_theme": 3
+                "min_codes_per_theme": 2
             }
         }
 
 class ThemeRefinementRequest(BaseModel):
-    """Request model for Theme Refinement Agent."""
+    """Request model for Theme Refiner Agent."""
     themes: List[Dict[str, Any]]
     research_domain: str = "General"
-    refinement_level: str = "academic"  # academic, detailed, concise
+    refinement_level: str = "academic"  # academic, concise, executive
     
     class Config:
         json_schema_extra = {
             "example": {
                 "themes": [
                     {
-                        "theme_name": "Governance Transparency",
-                        "description": "Theme about transparency in governance",
-                        "codes": [
-                            {
-                                "name": "transparency",
-                                "definition": "Openness in processes"
-                            }
-                        ]
+                        "theme_name": "Transparency Mechanisms",
+                        "description": "Mechanisms for transparency...",
+                        "codes": []
                     }
                 ],
-                "research_domain": "Governance",
+                "research_domain": "Blockchain",
                 "refinement_level": "academic"
             }
         }
 
 class ReportGenerationRequest(BaseModel):
-    """Request model for Report Generation Agent."""
-    sections: Dict[str, Any]
+    """Request model for Report Generator Agent."""
+    sections: List[str] = Field(default_factory=lambda: [
+        "Abstract", "Introduction", "Literature Review", "Methodology",
+        "Findings", "Discussion", "Conclusion"
+    ])
     research_domain: str = "General"
-    report_format: str = "academic"  # academic, executive, technical
+    report_format: str = "academic"  # academic, executive, summary
+    include_references: bool = True
     
     class Config:
         json_schema_extra = {
             "example": {
-                "sections": {
-                    "literature_review": {"summary": "Literature findings..."},
-                    "initial_coding": {"coded_units": []},
-                    "thematic_grouping": {"themes": []},
-                    "theme_refinement": {"refined_themes": []}
-                },
-                "research_domain": "Research Topic",
-                "report_format": "academic"
+                "sections": ["Abstract", "Introduction", "Findings", "Conclusion"],
+                "research_domain": "Blockchain",
+                "report_format": "academic",
+                "include_references": True
             }
         }
 
 class SupervisorRequest(BaseModel):
-    """Request model for Supervisor Agent."""
-    agent_output: Dict[str, Any] = Field(..., description="Output produced by the agent that needs evaluation")
-    agent_type: str = Field(..., description="Type of agent (e.g., literature_review, data_extractor, etc.)")
-    original_agent_input: Dict[str, Any] = Field(..., description="Original input that was sent to the agent (required for retry)")
-    agent_input: Optional[Dict[str, Any]] = Field(default=None, description="Optional modified input for retry (if not provided, uses original_agent_input)")
+    """Request model for Supervisor Agent evaluation."""
+    agent_type: str
+    agent_output: Dict[str, Any]
+    original_agent_input: Optional[Dict[str, Any]] = None
+    pipeline_step: Optional[str] = None
+    previous_steps: Optional[List[str]] = None
+    learning_context: Optional[Dict[str, Any]] = None
     
     class Config:
         json_schema_extra = {
             "example": {
-                "agent_output": {
-                    "summary": "Transparency in blockchain technology is important for trust.",
-                    "key_findings": ["Blockchain provides transparency"],
-                    "research_gaps": ["Need more research on privacy"],
-                    "full_literature_review": "A brief overview of blockchain transparency...",
-                    "documents_analyzed": 3,
-                    "research_domain": "Technology"
-                },
                 "agent_type": "literature_review",
-                "original_agent_input": {
-                    "documents": [
-                        {
-                            "title": "Blockchain Transparency in Financial Services",
-                            "authors": ["Smith, J.", "Johnson, A."],
-                            "abstract": "This paper explores transparency in blockchain...",
-                            "extracted_content": "Blockchain technology provides unprecedented transparency...",
-                            "year": 2023,
-                            "source": "Journal of Financial Technology"
-                        }
-                    ]
-                }
+                "agent_output": {"summary": "..."},
+                "original_agent_input": {"query": "blockchain governance"},
+                "pipeline_step": "1",
+                "previous_steps": ["retriever"],
+                "learning_context": {"style": "academic"}
             }
         }
 
 
 class RetryAgentRequest(BaseModel):
-    """Request model for Agent Retry with Enhanced Context."""
-    agent_type: str = Field(..., description="Type of agent to retry (e.g., literature_review, data_extractor, etc.)")
-    original_agent_input: Dict[str, Any] = Field(..., description="Original input that was sent to the agent")
-    enhanced_context: str = Field(..., description="Enhanced context from supervisor feedback and user input")
-    user_context: Optional[str] = Field(default=None, description="Additional context provided by the user")
+    """Request model for retrying an agent with enhanced context."""
+    agent_type: str
+    original_input: Dict[str, Any]
+    enhanced_context: Optional[Dict[str, Any]] = None
+    user_context: Optional[Dict[str, Any]] = None
     
     class Config:
         json_schema_extra = {
             "example": {
-                "agent_type": "literature_review",
-                "original_agent_input": {
-                    "documents": [
-                        {
-                            "title": "Blockchain Transparency Study",
-                            "authors": ["Smith, J."],
-                            "extracted_content": "Content for analysis..."
-                        }
-                    ],
-                    "research_domain": "Blockchain Technology"
-                },
-                "enhanced_context": "Focus on transparency mechanisms in blockchain protocol layers. Include detailed analysis of consensus mechanisms and their transparency implications. Provide specific examples and case studies.",
-                "user_context": "I need more detailed analysis of the technical aspects of blockchain transparency."
+                "agent_type": "data_extractor",
+                "original_input": {"query": "blockchain governance", "max_results": 10},
+                "enhanced_context": {"focus": "governance frameworks"},
+                "user_context": {"note": "expand to 2025"}
             }
-        } 
+        }
+
+ 

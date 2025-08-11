@@ -35,6 +35,7 @@ export const API_ENDPOINTS = {
     retry: '/api/v1/agents/retry-agent',
     status: '/api/v1/agents/status',
     types: '/api/v1/agents/types',
+    multiSourceExtractor: '/api/v1/agents/multi-source-extractor/extract',
   }
 }
 

@@ -10,7 +10,11 @@ import os
 import random
 # Add the api directory to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from utils.vector_store_manager import VectorStoreManager
+# Robust import to work in both direct and package contexts
+try:
+    from utils.vector_store_manager import VectorStoreManager
+except ImportError:  # pragma: no cover
+    from api.utils.vector_store_manager import VectorStoreManager  # type: ignore
 
 class DataExtractorAgent:
     """
@@ -198,54 +202,29 @@ class DataExtractorAgent:
                                 return {
                                     "paper_id": paper_id,
                                     "extraction_status": "success",
-                                    "text_content": cleaned_text,
-                                    "word_count": word_count,
-                                    "pages_extracted": len(pdf_reader.pages),
-                                    "extracted_at": datetime.now(timezone.utc).isoformat()
+                                    "content": cleaned_text,
+                                    "word_count": word_count
                                 }
-                            else:
-                                print(f"[ERROR] No text could be extracted from PDF")
-                                return {
-                                    "paper_id": paper_id,
-                                    "extraction_status": "failed",
-                                    "error": "No text could be extracted from PDF"
-                                }
-                        except Exception as pdf_error:
-                            print(f"[ERROR] PDF parsing failed: {pdf_error}")
+                        except Exception as e:
+                            print(f"[ERROR] Failed to process PDF content: {e}")
                             return {
                                 "paper_id": paper_id,
                                 "extraction_status": "failed",
-                                "error": f"PDF parsing failed: {str(pdf_error)}"
-                            }
-                    else:
-                        print(f"[DEBUG] Content is not a PDF, trying to decode as text")
-                        try:
-                            content_text = content_bytes.decode('utf-8', errors='ignore')
-                            word_count = len(content_text.split())
-                            print(f"[DEBUG] Successfully decoded {word_count} words as text")
-                            
-                            return {
-                                "paper_id": paper_id,
-                                "extraction_status": "success",
-                                "text_content": content_text[:5000] + "..." if len(content_text) > 5000 else content_text,
-                                "word_count": word_count,
-                                "pages_extracted": 1,
-                                "extracted_at": datetime.now(timezone.utc).isoformat()
-                            }
-                        except Exception as text_error:
-                            print(f"[ERROR] Text decoding failed: {text_error}")
-                            return {
-                                "paper_id": paper_id,
-                                "extraction_status": "failed",
-                                "error": f"Text decoding failed: {str(text_error)}"
+                                "error": str(e)
                             }
                 else:
-                    print(f"[ERROR] Failed to download PDF: {response.status}")
+                    print(f"[ERROR] Failed to download PDF. Status: {response.status}")
                     return {
                         "paper_id": paper_id,
                         "extraction_status": "failed",
-                        "error": f"Failed to download PDF: {response.status}"
+                        "error": f"HTTP status {response.status}"
                     }
+
+        return {
+            "paper_id": paper_id,
+            "extraction_status": "failed",
+            "error": "Invalid PDF content"
+        }
 
     async def store_in_vector_db(self, papers: List[Dict[str, Any]], research_domain: str) -> Dict[str, Any]:
         """
@@ -373,7 +352,7 @@ class DataExtractorAgent:
             print(f"[DEBUG] Extraction result for paper {i+1}: {extraction_result.get('extraction_status')}")
             
             if extraction_result.get("extraction_status") == "success":
-                enriched_paper = {**paper, "extracted_content": extraction_result.get("text_content", "")}
+                enriched_paper = {**paper, "extracted_content": extraction_result.get("content", "")}
                 extracted_papers.append(enriched_paper)
                 print(f"[DEBUG] Successfully enriched paper {i+1}")
             else:

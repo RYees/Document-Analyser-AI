@@ -188,6 +188,13 @@ class ApiClient {
     })
   }
 
+  async testMultiSourceExtractor(data: any): Promise<AgentResponse> {
+    return this.request<AgentResponse>(API_ENDPOINTS.agents.multiSourceExtractor, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
   // Supervisor endpoints
   async checkQuality(data: SupervisorRequest): Promise<AgentResponse> {
     return this.request<AgentResponse>(API_ENDPOINTS.agents.supervisor, {
@@ -250,6 +257,7 @@ export const testInitialCoding = apiClient.testInitialCoding.bind(apiClient)
 export const testThematicGrouping = apiClient.testThematicGrouping.bind(apiClient)
 export const testThemeRefiner = apiClient.testThemeRefiner.bind(apiClient)
 export const testReportGenerator = apiClient.testReportGenerator.bind(apiClient)
+export const testMultiSourceExtractor = apiClient.testMultiSourceExtractor.bind(apiClient)
 export const checkQuality = apiClient.checkQuality.bind(apiClient)
 export const retryAgent = apiClient.retryAgent.bind(apiClient)
 export const getAgentStatus = apiClient.getAgentStatus.bind(apiClient)

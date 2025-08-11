@@ -40,6 +40,9 @@ from services.agent_retry_service import AgentRetryService
 from utils.llm_backends import get_llm_backend
 import asyncio
 import traceback
+# NEW IMPORTS
+from agents.multi_source_data_extractor_agent import MultiSourceDataExtractorAgent
+from models.multi_source_models import MultiSourceExtractorRequest
 
 router = APIRouter()
 
@@ -675,4 +678,92 @@ async def retry_agent_with_context(request: RetryAgentRequest):
             status_code=500,
             detail=f"Agent retry failed: {str(e)}"
         )
+
+
+@router.post(
+    "/multi-source-extractor/extract",
+    response_model=AgentResponse,
+    summary="Extract from multiple sources (OpenAlex, Europe PMC, arXiv, CORE)",
+    description="Runs the multi-source extractor with optional enrichment (Crossref, Unpaywall, Semantic Scholar)."
+)
+async def multi_source_extract(request: MultiSourceExtractorRequest):
+    try:
+        print(f"\n🌐 ===== MULTI-SOURCE EXTRACTOR ENDPOINT =====")
+        print(f"🌐 Request received at: {datetime.now()}")
+        print(f"🌐 Query: {request.query}")
+        print(f"🌐 Research domain: {request.research_domain}")
+        print(f"🌐 Mode: {request.mode} | Enrich: {request.enrich}")
+        yrs_from = getattr(request.years, 'from_year', None) if request.years else None
+        yrs_to = getattr(request.years, 'to_year', None) if request.years else None
+        print(f"🌐 Limit: {request.limit} | Years: {yrs_from}-{yrs_to}")
+        print(f"🌐 Requested sources: {request.sources}")
+        print(f"🌐 Store: {request.store} | Collection: {request.collection_name}")
+
+        agent = MultiSourceDataExtractorAgent(collection_name=request.collection_name, research_domain=request.research_domain)
+
+        # Map simplified request to agent parameters
+        selected_sources = request.sources if request.mode == "manual" and request.sources else [
+            "openalex", "europe_pmc", "arxiv", "core"
+        ]
+        if request.enrich == "none":
+            enrich_with = []
+        elif request.enrich == "deep":
+            enrich_with = ["crossref", "unpaywall", "sem_scholar"]
+        else:
+            enrich_with = ["crossref", "unpaywall"]
+        max_results = request.limit
+        per_source_limit = max(2, (max_results + len(selected_sources) - 1) // max(1, len(selected_sources)))
+        year_from = request.years.from_year if request.years else None
+        year_to = request.years.to_year if request.years else None
+
+        # Server-side decisions for fallbacks
+        auto_fallback = True  # always enable backend auto fallback
+        enable_playwright_env = os.getenv("ENABLE_PLAYWRIGHT", "").lower() in ("1", "true", "yes")
+        use_playwright_fallback = bool(request.store) and enable_playwright_env
+        full_text = None  # let the agent auto-decide (PDF when available, else abstract)
+
+        print(f"🌐 Backend choices -> auto_fallback: {auto_fallback}, use_playwright_fallback: {use_playwright_fallback}, full_text: {full_text}")
+
+        result = await agent.run(
+            query=request.query,
+            research_domain=request.research_domain,
+            max_results=max_results,
+            year_from=year_from,
+            year_to=year_to,
+            language=None,
+            sources=selected_sources,
+            enrich_with=enrich_with,
+            per_source_limit=per_source_limit,
+            oa_only=True,
+            auto_fallback=auto_fallback,
+            store=request.store,
+            full_text=full_text,
+            use_playwright_fallback=use_playwright_fallback,
+        )
+
+        if not result.get("success", False):
+            raise HTTPException(status_code=400, detail=f"Multi-source extraction failed: {result.get('error', 'Unknown error')}")
+
+        # Ensure collection_name is returned when storing
+        response_data = result.get("data", {}) or {}
+        if request.store and not response_data.get("collection_name"):
+            response_data["collection_name"] = request.collection_name
+
+        response = AgentResponse(
+            success=True,
+            agent_type="multi_source_extractor",
+            data=response_data,
+            timestamp=datetime.now(timezone.utc).isoformat(),
+        )
+
+        print(f"🌐 ✅ Multi-source extraction completed. docs={len(response.data.get('documents', []) )}")
+        print(f"🌐 =======================================\n")
+        return response
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"🌐 ❌ Critical error: {e}")
+        print(f"🌐 =======================================\n")
+        raise HTTPException(status_code=500, detail=f"Multi-source extraction failed: {str(e)}")
 
