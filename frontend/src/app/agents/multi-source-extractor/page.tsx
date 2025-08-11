@@ -3,8 +3,19 @@
 import { EnhancedAgentForm } from '@/components/agents/enhanced-agent-form'
 import { testMultiSourceExtractor } from '@/lib/api'
 
+type FieldDef = {
+  name: string
+  label: string
+  type: 'text' | 'textarea' | 'number' | 'select' | 'multiselect' | 'chips' | 'json' | 'documents' | 'coded_units' | 'themes'
+  required?: boolean
+  placeholder?: string
+  options?: Array<{ value: string; label: string }>
+  defaultValue?: any
+  helpText?: string
+}
+
 export default function MultiSourceExtractorPage() {
-  const fields = [
+  const fields: FieldDef[] = [
     { name: 'query', label: 'Query', type: 'text', required: true, placeholder: 'e.g., blockchain governance' },
     { name: 'research_domain', label: 'Research Domain', type: 'text', required: false, placeholder: 'e.g., Technology' },
     { name: 'mode', label: 'Mode', type: 'select', required: true, options: [

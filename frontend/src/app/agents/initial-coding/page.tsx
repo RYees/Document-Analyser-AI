@@ -11,6 +11,13 @@ export default function InitialCodingPage() {
 
   // Try to load data from previous agents (literature-review or retriever)
   const getDefaultValues = () => {
+    // Avoid accessing browser APIs during SSR/prerender
+    if (typeof window === 'undefined') {
+      return {
+        research_domain: '',
+        documents: ''
+      }
+    }
     try {
       console.log('🎯 [INITIAL CODING] Attempting to load data from localStorage...')
       

@@ -21,3 +21,6 @@ weaviate-client>=4.0.0
 
 # PDF Processing
 PyPDF2>=3.0.0
+
+# Avoid protobuf runtime warnings on Vercel
+protobuf>=5.29.0,<6.0.0

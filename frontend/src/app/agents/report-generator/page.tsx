@@ -47,6 +47,12 @@ export default function ReportGeneratorPage() {
   ]
 
   const getDefaultValues = () => {
+    if (typeof window === 'undefined') {
+      return {
+        research_domain: '',
+        sections: ''
+      }
+    }
     try {
       // Load data from all previous agents
       const sections: any = {}
@@ -121,6 +127,7 @@ export default function ReportGeneratorPage() {
 
   // Check for previous data on client side
   useEffect(() => {
+    if (typeof window === 'undefined') return
     const hasLiteratureData = localStorage.getItem('agent_data_literature-review') !== null
     const hasInitialCodingData = localStorage.getItem('agent_data_initial-coding') !== null
     const hasThematicGroupingData = localStorage.getItem('agent_data_thematic-grouping') !== null

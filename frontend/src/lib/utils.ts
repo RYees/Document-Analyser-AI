@@ -89,6 +89,13 @@ export const AGENT_TYPES = {
     icon: '📄',
     color: 'teal',
     endpoint: API_ENDPOINTS.agents.reportGenerator
+  },
+  multiSourceExtractor: {
+    name: 'Multi-Source Extractor',
+    description: 'Discover papers across OpenAlex, Europe PMC, arXiv, CORE with optional enrichment',
+    icon: '🌐',
+    color: 'cyan',
+    endpoint: API_ENDPOINTS.agents.multiSourceExtractor
   }
 }
 
